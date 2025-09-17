@@ -1,28 +1,23 @@
 package models
 
-import "gorm.io/gorm"
-
 type User struct {
-	gorm.Model
-	userID   uint   `gorm:"primaryKey"`
-	username string `gorm:"unique"`
-	password string
-	email    string `gorm:"unique"`
-	polls    []Poll `gorm:"one2many"`
+	ID       uint   `gorm:"primaryKey;column:id"`
+	Username string `gorm:"unique;not null;column:username"`
+	Password string `gorm:"not null;column:password"`
+	Email    string `gorm:"unique;not null;column:email"`
+	Polls    []Poll `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 }
 
 type Poll struct {
-	gorm.Model
-	pollID  uint     `gorm:"primaryKey"`
-	title   string   `gorm:"not null"`
-	userID  User     `gorm:"foreignKey:UserID"`
-	options []Option `gorm:"one2many"`
+	ID      uint     `gorm:"primaryKey;column:id"`
+	Title   string   `gorm:"not null;column:title"`
+	UserID  uint     `gorm:"not null;column:user_id"` // Clave foránea
+	Options []Option `gorm:"foreignKey:PollID;constraint:OnDelete:CASCADE"`
 }
 
 type Option struct {
-	gorm.Model
-	optionID uint   `gorm:"primaryKey"`
-	content  string `gorm:"not null"`
-	pollID   Poll   `gorm:"foreignKey:pollID"`
-	correct  bool
+	ID      uint   `gorm:"primaryKey;column:id"`
+	Content string `gorm:"not null;column:content"`
+	PollID  uint   `gorm:"not null;column:poll_id"` // Clave foránea
+	Correct bool   `gorm:"default:false;column:correct"`
 }
