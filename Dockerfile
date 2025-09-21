@@ -1,7 +1,5 @@
 # compilacion
-
 FROM golang:1.25-alpine AS builder
-
 WORKDIR /app
 
 # Copiar módulos primero para cachear dependencias si existen
@@ -12,6 +10,10 @@ RUN go mod download || true
 
 # Copiar el código fuente
 COPY . .
+
+RUN go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+
+RUN sqlc generate
 
 # Compilar binario
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /app/main ./
