@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-
+	"os"
 	"context"
-
+	"github.com/joho/godotenv"
 	sqlc "webpolls.com/webpolls/db/sqlc"
-
 	_ "github.com/lib/pq"
 )
+
+// Crea tablas a partir del esquema en disco en el arranque
 
 func serveIndex(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
@@ -33,10 +34,17 @@ func main() {
 	http.HandleFunc("/", serveIndex)
 
 	port := ":8080"
+	_ = godotenv.Load()
 
 	//conexion a la base de datos
-	constStr := "user=joaquin password=1999 dbname=webpoll host=localhost port=5432 sslmode=disable"
-	db, errDb := sql.Open("postgres", constStr)
+	dbUser := os.Getenv("DB_USER")
+	dbPassword := os.Getenv("DB_PASSWORD")
+	dbName := os.Getenv("DB_NAME")
+	dbHost := os.Getenv("DB_HOST")
+
+	connStr := fmt.Sprintf("user=%s password=%s dbname=%s host=%s port=5432 sslmode=disable",
+		dbUser, dbPassword, dbName, dbHost)
+	db, errDb := sql.Open("postgres", connStr)
 
 	if errDb != nil {
 		fmt.Println("Error connecting to the database:", errDb)
@@ -50,6 +58,15 @@ func main() {
 	errDb = db.Ping()
 	if errDb != nil {
 		log.Fatal("Error pinging database:", errDb)
+	}
+
+	// Ejecutar el esquema para asegurar que existan las tablas (idempotente por IF NOT EXISTS)
+	schemaBytes, err := os.ReadFile("db/schema/schema.sql")
+	if err != nil {
+		log.Fatalf("Error reading schema file: %v", err)
+	}
+	if _, err := db.Exec(string(schemaBytes)); err != nil {
+		log.Fatalf("Error applying schema: %v", err)
 	}
 
 	fmt.Println("Successfully connected to database!")
