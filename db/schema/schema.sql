@@ -1,5 +1,5 @@
 -- Tabla Users
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
@@ -7,7 +7,7 @@ CREATE TABLE users (
 );
 
 -- Tabla Polls
-CREATE TABLE polls (
+CREATE TABLE IF NOT EXISTS polls (
     id SERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     user_id INTEGER NOT NULL,
@@ -15,7 +15,7 @@ CREATE TABLE polls (
 );
 
 -- Tabla Options
-CREATE TABLE options (
+CREATE TABLE IF NOT EXISTS options (
     id SERIAL PRIMARY KEY,
     content VARCHAR(255) NOT NULL,
     poll_id INTEGER NOT NULL,
@@ -24,5 +24,6 @@ CREATE TABLE options (
 );
 
 -- Índices para mejorar el rendimiento
-CREATE INDEX idx_polls_user_id ON polls(user_id);
-CREATE INDEX idx_options_poll_id ON options(poll_id);
+CREATE INDEX IF NOT EXISTS idx_polls_user_id ON polls(user_id);
+CREATE INDEX IF NOT EXISTS idx_options_poll_id ON options(poll_id);
+CREATE INDEX IF NOT EXISTS idx_options_poll_id ON options(poll_id);
