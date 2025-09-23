@@ -8,6 +8,11 @@ SELECT id, username, email
 FROM users
 WHERE id = $1;
 
+-- name: GetUserByUsername :one
+SELECT id, username, email
+FROM users
+WHERE username = $1;
+
 -- name: GetAllUsers :many
 SELECT id, username, email
 FROM users;
