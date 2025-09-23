@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -71,17 +72,27 @@ func main() {
 
 	fmt.Println("Successfully connected to database!")
 
-	createdUser, err := queries.CreateUser(ctx, sqlc.CreateUserParams{
-		Username: "testuser",
-		Password: "password123",
-		Email:    "jklsajdlaskj@skd.com",
-	})
+	// Crear usuario si no existe (buscar por username primero)
+	username := "testuser"
+	password := "password123"
+	email := "jklsajdlaskj@skd.com"
 
-	if err != nil {
-		log.Fatal("Error creating user:", err)
+	userRow, err := queries.GetUserByUsername(ctx, username)
+	if err == nil {
+		fmt.Println("Usuario ya existe:", userRow.ID, userRow.Username, userRow.Email)
+	} else if errors.Is(err, sql.ErrNoRows) {
+		createdUser, err := queries.CreateUser(ctx, sqlc.CreateUserParams{
+			Username: username,
+			Password: password,
+			Email:    email,
+		})
+		if err != nil {
+			log.Fatal("Error creating user:", err)
+		}
+		fmt.Println("Created user:", createdUser)
+	} else {
+		log.Fatal("Error checking existing user:", err)
 	}
-
-	fmt.Println("Created user:", createdUser)
 
 	fmt.Println("Server started on port", port)
 	err = http.ListenAndServe(port, nil)
