@@ -74,6 +74,6 @@ Requisitos: Go 1.20+ (o compatible)
 
 ## Integrantes del grupo
 
-- Agustina Pereira
+- Agustina Pereyra
 - Joaquin Loza Ciappa
 - Santiago Arias Ocampo
