@@ -1,90 +1,96 @@
-# WebPolls – Instrucciones de ejecución
+# WebPolls
 
-Aplicación backend en Go con base de datos PostgreSQL. Incluye un esquema SQL que se aplica al iniciar para crear tablas si no existen.
+Aplicación web simple para crear y visualizar encuestas con opciones de respuesta de tipo multiple choice.
 
-## Requisitos
-- Docker y Docker Compose v2
-- Go (solo si deseas ejecutarlo localmente sin Docker)
+La app actualmente expone una página estática en `http://localhost:8080/` servida por el servidor en Go (`main.go`). El objetivo del dominio es permitir que un usuario cree encuestas (polls) y que cada encuesta tenga varias opciones (options) entre las cuales se pueda elegir.
 
-## Estructura relevante
-- `main.go`: servidor HTTP y conexión a PostgreSQL; aplica el esquema al iniciar.
-- `db/schema/schema.sql`: definición de tablas e índices.
-- `Dockerfile`: build multi-stage para generar una imagen mínima del backend.
-- `docker-compose.yml`: orquesta `postgres` y `backend`.
-- `.env`: credenciales y configuración (usado por Compose y opcionalmente por `godotenv` en local).
-- `static/`: archivos estáticos servidos en `GET /`.
+## Modelos de datos
 
-## Variables de entorno
-Archivo `.env` esperado:
+A continuación se describe la información almacenada para cada modelo según el diagrama provisto (`user` — `poll` — `option`).
+
+### user
+- **id**: `serial` (PK)
+  - Identificador único del usuario.
+- **username**: `varchar(20)`
+  - Nombre de usuario visible y único (recomendado aplicar restricción de unicidad).
+- **password**: `varchar`
+  - Hash de la contraseña del usuario. No se deben almacenar contraseñas en texto plano.
+- **email**: `varchar(20)`
+  - Email del usuario.
+
+### poll
+- **id**: `serial` (PK)
+  - Identificador único de la encuesta.
+- **title**: `varchar(200)`
+  - Título o pregunta principal de la encuesta.
+- **user_id**: `int` (FK → `user.id`)
+  - Usuario propietario/creador de la encuesta.
+
+Relación: Un `user` puede tener muchas `poll` (1:N).
+
+### option
+- **id**: `serial` (PK)
+  - Identificador único de la opción.
+- **content**: `varchar(50)`
+  - Texto de la opción que verá el usuario al votar.
+- **poll_id**: `int` (PK, FK → `poll.id`)
+  - Encuesta a la que pertenece la opción. En el diagrama figura como parte de la clave (PK, FK), lo que sugiere una clave compuesta (`id`, `poll_id`). Alternativamente, puede modelarse como PK simple en `id` y `poll_id` como FK con índice.
+- **correct**: `boolean`
+  - Marca si la opción es la correcta (útil si la encuesta funciona como cuestionario). Para encuestas sin respuesta correcta, puede ignorarse o dejarse en `false`.
+
+Relación: Una `poll` tiene muchas `option` (1:N).
+
+## Estructura del proyecto
+
 ```
-DB_USER=usuario (cambiar)
-DB_PASSWORD=contraseña (cambiar)
-DB_NAME=nombre_de_la_base_de_datos (cambiar)
+webPolls/
+├─ main.go              # Servidor HTTP (Go)
+├─ go.mod               # Módulo de Go
+└─ static/              # Archivos estáticos (frontend)
+   ├─ index.html
+   ├─ styles.css
+   └─ logo.svg (opcional)
+├─ db/                  # Base de datos
+   ├─ schema/           # Esquema de la base de datos
+   │  └─ schema.sql     # Esquema de la base de datos
+   └─ queries/          # Consultas a la base de datos
+      ├─ users.sql     # Consultas a la tabla de usuarios
+      ├─ polls.sql     # Consultas a la tabla de encuestas
+      └─ options.sql   # Consultas a la tabla de opciones
+├─ sqlc/               # Generación de código (sqlc)
+   ├─ users.sql.go    # Código generado para la tabla de usuarios
+   ├─ polls.sql.go    # Código generado para la tabla de encuestas
+   └─ options.sql.go  # Código generado para la tabla de opciones
 ```
 
-Para ejecución local (sin Docker), usa:
-```
-DB_HOST=localhost
-```
+## Ejecución local
 
----
+Requisitos: Go 1.20+ (o compatible)
+Requisitos: sqlc
 
-## Ejecución con Docker Compose (recomendado)
+0. (Opcional) Generar el esquema de la base de datos. Ya se incluye en el codigo fuente, pero en caso de no tenerlo:
+   ```bash
+   sqlc generate
+   ```
 
-1) Construir y levantar servicios
-```bash
-docker compose build
-docker compose up -d
-```
+1. Iniciar el modulo:
+   ```bash
+   go mod init webPolls/webPolls.com
+   ```
+2. Instalar dependencias del módulo:
+   ```bash
+   go mod tidy
+   ```
+3. Ejecutar el servidor:
+   ```bash
+   go run main.go
+   ```
+4. Abrir en el navegador:
+   - `http://localhost:8080/`
 
-2) Probar el backend
-```bash
-curl http://localhost:8080/
-```
 
-3) Apagar
-```bash
-docker compose down
-```
+## Integrantes del grupo
 
-Notas:
-- El contenedor del backend copia `db/schema/schema.sql` dentro de la imagen y lo ejecuta al arrancar para crear tablas.
-- El servicio `postgres` usa las credenciales del `.env`. En Compose el backend se conecta con `DB_HOST=postgres` y `DB_PORT=5432`.
-
----
-
-## Ejecución local (sin Docker)
-
-1) Asegúrate de tener PostgreSQL accesible en `localhost:5432`.
-
-2) Ejecuta la app
-```bash
-go mod init webpolls.com/webpolls
-go mod tidy
-go run main.go
-```
-
-La app:
-- Conecta a PostgreSQL con las variables anteriores.
-- Verifica la conexión (`Ping`).
-- Aplica el esquema `db/schema/schema.sql` (crea tablas/índices si no existen).
-- Arranca en `:8080`.
-
----
-
-## Endpoints
-- `GET /` → sirve `static/index.html`.
-
----
-
-## Comandos útiles
-```bash
-# Reconstruir solo el backend
-docker compose build --no-cache backend
-
-# Logs
-docker compose logs -f backend
-
-# Probar el puerto localmente
-curl -v http://localhost:8080/
-```
+- Agustina Pereyra
+- Joaquin Loza Ciappa
+- Santiago Arias Ocampo

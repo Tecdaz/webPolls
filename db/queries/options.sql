@@ -8,6 +8,11 @@ SELECT content, correct
 FROM options
 WHERE id = $1;
 
+-- name: GetOptionByPollID :many
+SELECT content, correct
+FROM options
+WHERE poll_id = $1;
+
 -- name: GetAllOptions :many
 SELECT content, correct
 FROM options;

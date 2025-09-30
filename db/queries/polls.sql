@@ -1,7 +1,7 @@
 -- name: CreatePoll :one
 INSERT INTO polls (title, user_id)
 VALUES ($1, $2)
-RETURNING title, user_id ;
+RETURNING title, user_id;
 
 -- name: GetPollByID :one
 SELECT title, user_id
