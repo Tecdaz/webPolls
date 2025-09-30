@@ -94,6 +94,40 @@ func (q *Queries) GetOptionByID(ctx context.Context, id int32) (GetOptionByIDRow
 	return i, err
 }
 
+const getOptionByPollID = `-- name: GetOptionByPollID :many
+SELECT content, correct
+FROM options
+WHERE poll_id = $1
+`
+
+type GetOptionByPollIDRow struct {
+	Content string       `json:"content"`
+	Correct sql.NullBool `json:"correct"`
+}
+
+func (q *Queries) GetOptionByPollID(ctx context.Context, pollID int32) ([]GetOptionByPollIDRow, error) {
+	rows, err := q.db.QueryContext(ctx, getOptionByPollID, pollID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetOptionByPollIDRow
+	for rows.Next() {
+		var i GetOptionByPollIDRow
+		if err := rows.Scan(&i.Content, &i.Correct); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateOption = `-- name: UpdateOption :exec
 UPDATE options
 SET content = $2, correct = $3
