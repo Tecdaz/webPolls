@@ -10,6 +10,8 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
+	sqlc "webpolls.com/webpolls/db/sqlc"
 )
 
 // Crea tablas a partir del esquema en disco en el arranque
@@ -94,7 +96,7 @@ func main() {
 	}
 
 	fmt.Println("Server started on port", port)
-	err := http.ListenAndServe(port, nil)
+	err = http.ListenAndServe(port, nil)
 	if err != nil {
 		fmt.Println("Error starting server:", err)
 	}
