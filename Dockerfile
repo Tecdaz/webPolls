@@ -2,14 +2,10 @@
 FROM golang:1.25-alpine AS builder
 WORKDIR /app
 
-# Copiar módulos primero para cachear dependencias si existen
-COPY go.mod go.sum ./
-RUN [ -f go.mod ] || go mod init webpolls.com/webpolls
-RUN go mod tidy || true
-RUN go mod download || true
-
 # Copiar el código fuente
 COPY . .
+
+RUN go mod download
 
 RUN go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
 

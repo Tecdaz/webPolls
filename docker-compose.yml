@@ -5,14 +5,14 @@ services:
     env_file:
       - .env
     environment:
-      POSTGRES_DB: webpolls
+      POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
       - "5432:5432"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d webpolls"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -29,7 +29,8 @@ services:
     networks:
       - webpolls-network
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     env_file:
       - .env
     environment:
@@ -38,6 +39,7 @@ services:
       DB_NAME: ${DB_NAME}
       DB_HOST: postgres
       DB_PORT: 5432
+    restart: unless-stopped
 
 networks:
   webpolls-network:
