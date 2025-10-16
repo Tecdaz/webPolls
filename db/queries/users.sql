@@ -13,14 +13,23 @@ SELECT id, username, email
 FROM users
 WHERE username = $1;
 
+-- name: GetUserByEmail :one
+SELECT id, username, email
+FROM users
+WHERE email = $1;
+
 -- name: GetAllUsers :many
 SELECT id, username, email
 FROM users;
 
--- name: UpdateUser :exec
+-- name: UpdateUser :one
 UPDATE users
-SET username = $2, password = $3, email = $4
-WHERE id = $1;
+SET
+    username = COALESCE(NULLIF($2, ''), username),
+    email    = COALESCE(NULLIF($3, ''), email),
+    password = COALESCE(NULLIF($4, ''), password)
+WHERE id = $1
+RETURNING id, username, email;
 
 -- name: DeleteUser :exec
 DELETE FROM users

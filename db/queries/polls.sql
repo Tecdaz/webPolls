@@ -1,10 +1,10 @@
 -- name: CreatePoll :one
 INSERT INTO polls (title, user_id)
 VALUES ($1, $2)
-RETURNING title, user_id;
+RETURNING id,title, user_id;
 
 -- name: GetPollByID :one
-SELECT title, user_id
+SELECT id, title, user_id
 FROM polls
 WHERE id = $1;
 

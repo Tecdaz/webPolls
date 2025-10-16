@@ -11,25 +11,33 @@ import (
 )
 
 const createOption = `-- name: CreateOption :one
-INSERT INTO options (content, correct)
-VALUES ($1, $2)
-RETURNING content, correct
+INSERT INTO options (content, correct, poll_id)
+VALUES ($1, $2, $3)
+RETURNING id, content, correct, poll_id
 `
 
 type CreateOptionParams struct {
 	Content string       `json:"content"`
 	Correct sql.NullBool `json:"correct"`
+	PollID  int32        `json:"poll_id"`
 }
 
 type CreateOptionRow struct {
+	ID      int32        `json:"id"`
 	Content string       `json:"content"`
 	Correct sql.NullBool `json:"correct"`
+	PollID  int32        `json:"poll_id"`
 }
 
 func (q *Queries) CreateOption(ctx context.Context, arg CreateOptionParams) (CreateOptionRow, error) {
-	row := q.db.QueryRowContext(ctx, createOption, arg.Content, arg.Correct)
+	row := q.db.QueryRowContext(ctx, createOption, arg.Content, arg.Correct, arg.PollID)
 	var i CreateOptionRow
-	err := row.Scan(&i.Content, &i.Correct)
+	err := row.Scan(
+		&i.ID,
+		&i.Content,
+		&i.Correct,
+		&i.PollID,
+	)
 	return i, err
 }
 

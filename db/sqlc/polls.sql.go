@@ -12,7 +12,7 @@ import (
 const createPoll = `-- name: CreatePoll :one
 INSERT INTO polls (title, user_id)
 VALUES ($1, $2)
-RETURNING title, user_id
+RETURNING id,title, user_id
 `
 
 type CreatePollParams struct {
@@ -20,15 +20,10 @@ type CreatePollParams struct {
 	UserID int32  `json:"user_id"`
 }
 
-type CreatePollRow struct {
-	Title  string `json:"title"`
-	UserID int32  `json:"user_id"`
-}
-
-func (q *Queries) CreatePoll(ctx context.Context, arg CreatePollParams) (CreatePollRow, error) {
+func (q *Queries) CreatePoll(ctx context.Context, arg CreatePollParams) (Poll, error) {
 	row := q.db.QueryRowContext(ctx, createPoll, arg.Title, arg.UserID)
-	var i CreatePollRow
-	err := row.Scan(&i.Title, &i.UserID)
+	var i Poll
+	err := row.Scan(&i.ID, &i.Title, &i.UserID)
 	return i, err
 }
 
@@ -76,20 +71,15 @@ func (q *Queries) GetAllPolls(ctx context.Context) ([]GetAllPollsRow, error) {
 }
 
 const getPollByID = `-- name: GetPollByID :one
-SELECT title, user_id
+SELECT id, title, user_id
 FROM polls
 WHERE id = $1
 `
 
-type GetPollByIDRow struct {
-	Title  string `json:"title"`
-	UserID int32  `json:"user_id"`
-}
-
-func (q *Queries) GetPollByID(ctx context.Context, id int32) (GetPollByIDRow, error) {
+func (q *Queries) GetPollByID(ctx context.Context, id int32) (Poll, error) {
 	row := q.db.QueryRowContext(ctx, getPollByID, id)
-	var i GetPollByIDRow
-	err := row.Scan(&i.Title, &i.UserID)
+	var i Poll
+	err := row.Scan(&i.ID, &i.Title, &i.UserID)
 	return i, err
 }
 

@@ -1,7 +1,8 @@
 -- name: CreateOption :one
-INSERT INTO options (content, correct)
-VALUES ($1, $2)
-RETURNING content, correct ;
+INSERT INTO options (content, correct, poll_id)
+VALUES ($1, $2, $3)
+RETURNING id, content, correct, poll_id;
+ 
 
 -- name: GetOptionByID :one
 SELECT content, correct

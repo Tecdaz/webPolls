@@ -78,6 +78,25 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]GetAllUsersRow, error) {
 	return items, nil
 }
 
+const getUserByEmail = `-- name: GetUserByEmail :one
+SELECT id, username, email
+FROM users
+WHERE email = $1
+`
+
+type GetUserByEmailRow struct {
+	ID       int32  `json:"id"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+}
+
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error) {
+	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
+	var i GetUserByEmailRow
+	err := row.Scan(&i.ID, &i.Username, &i.Email)
+	return i, err
+}
+
 const getUserByID = `-- name: GetUserByID :one
 SELECT id, username, email
 FROM users
@@ -116,25 +135,37 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (GetUs
 	return i, err
 }
 
-const updateUser = `-- name: UpdateUser :exec
+const updateUser = `-- name: UpdateUser :one
 UPDATE users
-SET username = $2, password = $3, email = $4
+SET
+    username = COALESCE(NULLIF($2, ''), username),
+    email    = COALESCE(NULLIF($3, ''), email),
+    password = COALESCE(NULLIF($4, ''), password)
 WHERE id = $1
+RETURNING id, username, email
 `
 
 type UpdateUserParams struct {
+	ID      int32       `json:"id"`
+	Column2 interface{} `json:"column_2"`
+	Column3 interface{} `json:"column_3"`
+	Column4 interface{} `json:"column_4"`
+}
+
+type UpdateUserRow struct {
 	ID       int32  `json:"id"`
 	Username string `json:"username"`
-	Password string `json:"password"`
 	Email    string `json:"email"`
 }
 
-func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
-	_, err := q.db.ExecContext(ctx, updateUser,
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (UpdateUserRow, error) {
+	row := q.db.QueryRowContext(ctx, updateUser,
 		arg.ID,
-		arg.Username,
-		arg.Password,
-		arg.Email,
+		arg.Column2,
+		arg.Column3,
+		arg.Column4,
 	)
-	return err
+	var i UpdateUserRow
+	err := row.Scan(&i.ID, &i.Username, &i.Email)
+	return i, err
 }
