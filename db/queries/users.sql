@@ -25,12 +25,13 @@ FROM users;
 -- name: UpdateUser :one
 UPDATE users
 SET
-    username = COALESCE(NULLIF($2, ''), username),
-    email    = COALESCE(NULLIF($3, ''), email),
-    password = COALESCE(NULLIF($4, ''), password)
+    username = $2,
+    email    = $3,
+    password = $4
 WHERE id = $1
 RETURNING id, username, email;
 
--- name: DeleteUser :exec
+-- name: DeleteUser :one
 DELETE FROM users
-WHERE id = $1;
+WHERE id = $1
+RETURNING username;

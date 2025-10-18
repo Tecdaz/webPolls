@@ -26,4 +26,5 @@ CREATE TABLE IF NOT EXISTS options (
 -- Índices para mejorar el rendimiento
 CREATE INDEX IF NOT EXISTS idx_polls_user_id ON polls(user_id);
 CREATE INDEX IF NOT EXISTS idx_options_poll_id ON options(poll_id);
-CREATE INDEX IF NOT EXISTS idx_options_poll_id ON options(poll_id);
+CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);

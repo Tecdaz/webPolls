@@ -34,14 +34,17 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateU
 	return i, err
 }
 
-const deleteUser = `-- name: DeleteUser :exec
+const deleteUser = `-- name: DeleteUser :one
 DELETE FROM users
 WHERE id = $1
+RETURNING username
 `
 
-func (q *Queries) DeleteUser(ctx context.Context, id int32) error {
-	_, err := q.db.ExecContext(ctx, deleteUser, id)
-	return err
+func (q *Queries) DeleteUser(ctx context.Context, id int32) (string, error) {
+	row := q.db.QueryRowContext(ctx, deleteUser, id)
+	var username string
+	err := row.Scan(&username)
+	return username, err
 }
 
 const getAllUsers = `-- name: GetAllUsers :many
@@ -138,18 +141,18 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (GetUs
 const updateUser = `-- name: UpdateUser :one
 UPDATE users
 SET
-    username = COALESCE(NULLIF($2, ''), username),
-    email    = COALESCE(NULLIF($3, ''), email),
-    password = COALESCE(NULLIF($4, ''), password)
+    username = $2,
+    email    = $3,
+    password = $4
 WHERE id = $1
 RETURNING id, username, email
 `
 
 type UpdateUserParams struct {
-	ID      int32       `json:"id"`
-	Column2 interface{} `json:"column_2"`
-	Column3 interface{} `json:"column_3"`
-	Column4 interface{} `json:"column_4"`
+	ID       int32  `json:"id"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 type UpdateUserRow struct {
@@ -161,9 +164,9 @@ type UpdateUserRow struct {
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (UpdateUserRow, error) {
 	row := q.db.QueryRowContext(ctx, updateUser,
 		arg.ID,
-		arg.Column2,
-		arg.Column3,
-		arg.Column4,
+		arg.Username,
+		arg.Email,
+		arg.Password,
 	)
 	var i UpdateUserRow
 	err := row.Scan(&i.ID, &i.Username, &i.Email)
