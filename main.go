@@ -4,28 +4,31 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"webpolls/handlers"
 
 	sqlc "webpolls/db/sqlc"
-
-	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
 func main() {
-	// Cargar variables de entorno
-	_ = godotenv.Load()
+	// cargar variables .env
+	if err := godotenv.Load(); err != nil {
+		log.Println("No se pudo cargar el archivo .env, usando variables del sistema.")
+	}
 
-	// Configurar conexión a la DB
+	// conexion a BD
 	dbUser := os.Getenv("DB_USER")
 	dbPassword := os.Getenv("DB_PASSWORD")
 	dbName := os.Getenv("DB_NAME")
 	dbHost := os.Getenv("DB_HOST")
 
-	connStr := fmt.Sprintf("user=%s password=%s dbname=%s host=%s port=5432 sslmode=disable",
-		dbUser, dbPassword, dbName, dbHost)
+	connStr := fmt.Sprintf(
+		"user=%s password=%s dbname=%s host=%s port=5432 sslmode=disable",
+		dbUser, dbPassword, dbName, dbHost,
+	)
 
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
@@ -33,52 +36,65 @@ func main() {
 	}
 	defer db.Close()
 
-	// Verificar la conexión
-	if err := db.Ping(); err != nil {
+	if err := db.Ping(); err != nil { //ping para verificar conexion
 		log.Fatal("Error pinging database:", err)
 	}
 
-	// Ejecutar esquema
+	// aplicar schema.sql
 	schemaBytes, err := os.ReadFile("db/schema/schema.sql")
 	if err != nil {
-		log.Fatalf("Error reading schema file: %v", err)
+		log.Fatalf("Error leyendo schema.sql: %v", err)
 	}
 	if _, err := db.Exec(string(schemaBytes)); err != nil {
-		log.Fatalf("Error applying schema: %v", err)
+		log.Fatalf("Error aplicando schema: %v", err)
 	}
 
-	fmt.Println("Successfully connected to database!")
+	fmt.Println("Conexión a la base de datos exitosa")
 
+	// inicio handlers
 	queries := sqlc.New(db)
-
-	//iniciar handlers
-	pollHandler := handlers.NewPollHandler(queries)
 	userHandler := handlers.NewUserHandler(queries)
+	pollHandler := handlers.NewPollHandler(queries)
 
-	// --- Gin Setup ---
-	router := gin.Default()
-
-	// Servir archivos estáticos
-	router.Static("/static", "./static")
-
-	// Ruta principal
-	router.GET("/", func(c *gin.Context) {
-		c.File("./static/index.html")
+	// defino las rutas de users
+	http.HandleFunc("/users/create", userHandler.CreateUser)
+	http.HandleFunc("/users/", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			userHandler.GetUser(w, r)
+		case http.MethodDelete:
+			userHandler.DeleteUser(w, r)
+		case http.MethodPut:
+			userHandler.UpdateUser(w, r)
+		default:
+			http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+		}
 	})
 
-	//llamados
-	router.POST("/polls/create", pollHandler.CreatePoll)
-	router.DELETE("/polls/:id", pollHandler.DeletePoll)
-	router.GET("/polls/:id", pollHandler.GetPoll)
-	router.POST("/users/create", userHandler.CreateUser)
-	router.DELETE("/users/:id", userHandler.DeleteUser)
-	router.GET("/users/:id", userHandler.GetUser)
-	router.PUT("users/:id", userHandler.UpdateUser)
+	// defino las rutas de polls
+	http.HandleFunc("/polls/create", pollHandler.CreatePoll)
+	http.HandleFunc("/polls/", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			pollHandler.GetPoll(w, r)
+		case http.MethodDelete:
+			pollHandler.DeletePoll(w, r)
+		default:
+			http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+		}
+	})
 
-	// Inicializar servidor
+	// ruta principal
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./static/index.html")
+	})
+
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static")))) //para servir el contenido de static/
+
+	// inicio servidor
 	port := ":8080"
-	fmt.Println("Server started on port", port)
-	if err := router.Run(port); err != nil {
-		log.Fatal("Error starting server:", err)
+	log.Println("Servidor corriendo en", port)
+	if err := http.ListenAndServe(port, nil); err != nil {
+		log.Fatal("Error al iniciar el servidor:", err)
 	}
 }

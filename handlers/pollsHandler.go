@@ -7,40 +7,47 @@ import (
 
 	"webpolls/dataconvertion"
 
-	"github.com/gin-gonic/gin"
+	"encoding/json"
+	"net/http"
+	"strconv"
 )
 
 // para inicializar el handler desde el main
-type pollHandler struct {
+type PollHandler struct {
 	queries *sqlc.Queries
 }
 
-func NewPollHandler(queries *sqlc.Queries) *pollHandler {
-	return &pollHandler{queries: queries}
+func NewPollHandler(queries *sqlc.Queries) *PollHandler {
+	return &PollHandler{queries: queries}
 }
 
 // objeto que recibe el json desde la solicitud
 type CreatePollRequest struct {
-	Question string   `json:"question" binding:"required"`
-	Options  []string `json:"options" binding:"required,min=2"`
+	Question string   `json:"question"`
+	Options  []string `json:"options"`
 }
 
-func (h *pollHandler) CreatePoll(c *gin.Context) {
-	var req CreatePollRequest
-
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+func (h *PollHandler) CreatePoll(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
 		return
 	}
 
+	var req CreatePollRequest
+
+	if req.Question == "" || len(req.Options) < 2 {
+    	http.Error(w, "Missing question or not enough options", http.StatusBadRequest)
+    	return
+	}
+
 	//crea la encuesta
-	poll, err := h.queries.CreatePoll(c, sqlc.CreatePollParams{
+	poll, err := h.queries.CreatePoll(r.Context(), sqlc.CreatePollParams{
 		Title:  req.Question,
 		UserID: 1, // 1 por que todavia no hice la parte de los usuarios
 	})
 
 	if err != nil {
-		c.JSON(500, gin.H{"error": "Failed to create poll"})
+		http.Error(w, "Failed to create poll", http.StatusInternalServerError)
 		return
 	}
 
@@ -51,54 +58,84 @@ func (h *pollHandler) CreatePoll(c *gin.Context) {
 
 	var options []sqlc.CreateOptionRow
 	for _, optionContent := range req.Options {
-		option, err := h.queries.CreateOption(c, sqlc.CreateOptionParams{
+		option, err := h.queries.CreateOption(r.Context(), sqlc.CreateOptionParams{
 			Content: optionContent,
 			Correct: sql.NullBool{Bool: false, Valid: true},
 			PollID:  poll.ID,
 		})
 		if err != nil {
-			c.JSON(500, gin.H{"error": "Failed to create option"})
+			http.Error(w, "Failed to create option", http.StatusInternalServerError)
 			return
 		}
 		options = append(options, option)
 	}
 
-	c.JSON(201, gin.H{
-		"poll":    poll,
-		"options": options,
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+    	"poll":    poll,
+    	"options": options,
+	})
+
+}
+
+func (h *PollHandler) DeletePoll(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	idStr := r.URL.Query().Get("id")
+	if idStr == "" {
+		http.Error(w, "Missing id parameter", http.StatusBadRequest)
+		return
+	}
+
+	id, err := dataconvertion.ConvertTo32(idStr)
+	if err != nil {
+		http.Error(w, "Invalid poll ID", http.StatusBadRequest)
+		return
+	}
+
+	err = h.queries.DeletePoll(r.Context(), id)
+	if err != nil {
+		http.Error(w, "Failed to delete poll", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Poll deleted successfully",
 	})
 }
 
-func (h *pollHandler) DeletePoll(c *gin.Context) {
-	pollID := c.Param("id")
-	pollIDInt32, err := dataconvertion.ConvertTo32(pollID)
-
-	if err != nil {
-		c.JSON(400, gin.H{"error": "Invalid poll ID"})
+func (h *PollHandler) GetPoll(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
 		return
 	}
 
-	err = h.queries.DeletePoll(c, pollIDInt32)
-	if err != nil {
-		c.JSON(500, gin.H{"error": "Failed to delete poll"})
+	idStr := r.URL.Query().Get("id")
+	if idStr == "" {
+		http.Error(w, "Missing id parameter", http.StatusBadRequest)
 		return
 	}
-	c.JSON(200, gin.H{"message": "Poll deleted successfully"})
-}
 
-func (h *pollHandler) GetPoll(c *gin.Context) {
-	pollID := c.Param("id")
-	pollIDInt32, err := dataconvertion.ConvertTo32(pollID)
-
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		c.JSON(400, gin.H{"error": "Invalid poll ID"})
+		http.Error(w, "Invalid poll ID", http.StatusBadRequest)
 		return
 	}
-	poll, err := h.queries.GetPollByID(c, pollIDInt32)
+
+	poll, err := h.queries.GetPollByID(r.Context(), int32(id))
 	if err != nil {
 		log.Println("DB error:", err)
-		c.JSON(500, gin.H{"error": "Failed to get poll"})
+		http.Error(w, "Failed to get poll", http.StatusInternalServerError)
 		return
 	}
-	c.JSON(200, gin.H{"poll": poll})
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"poll": poll,
+	})
 }

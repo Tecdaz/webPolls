@@ -1,13 +1,13 @@
 package handlers
 
 import (
-	sqlc "webpolls/db/sqlc"
-
-	"webpolls/dataconvertion"
-
 	"database/sql"
+	"encoding/json"
+	"net/http"
+	"strings"
 
-	"github.com/gin-gonic/gin"
+	sqlc "webpolls/db/sqlc"
+	"webpolls/dataconvertion"
 )
 
 type userHandler struct {
@@ -18,149 +18,165 @@ func NewUserHandler(queries *sqlc.Queries) *userHandler {
 	return &userHandler{queries: queries}
 }
 
+//create user
+
 type CreateUserRequest struct {
-	Username string `json:"username" binding:"required"`
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,min=6"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
-func (h *userHandler) CreateUser(c *gin.Context) {
-	var req CreateUserRequest
-
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+func (h *userHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost { //solo uso de POST
+		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
 	}
 
-	// checkeos para asegurar que no exista ni el usuario ni el mail
-	_, err := h.queries.GetUserByUsername(c, req.Username)
+	var req CreateUserRequest //verificacion de cuerpo json
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Error al decodificar JSON", http.StatusBadRequest)
+		return
+	}
+
+	// validacion de campos
+	if req.Username == "" || req.Email == "" || req.Password == "" {
+		http.Error(w, "Todos los campos son obligatorios", http.StatusBadRequest)
+		return
+	}
+
+	// asegurar que no exista ni el usuario ni el mail
+	_, err := h.queries.GetUserByUsername(r.Context(), req.Username) //uso de r.context para que las consultas a la bdd se cancelen automaticamente si el cliente corta la conexion
 	if err == nil {
-		c.JSON(400, gin.H{"error": "Username already exists"})
+		http.Error(w, "Username already exists", http.StatusBadRequest)
 		return
 	}
 
-	_, err = h.queries.GetUserByEmail(c, req.Email)
+	_, err = h.queries.GetUserByEmail(r.Context(), req.Email)
 	if err == nil {
-		c.JSON(400, gin.H{"error": "Email already exists"})
+		http.Error(w, "Email already exists", http.StatusBadRequest)
 		return
 	}
 
-	user, err := h.queries.CreateUser(c, sqlc.CreateUserParams{
+	user, err := h.queries.CreateUser(r.Context(), sqlc.CreateUserParams{
 		Username: req.Username,
 		Email:    req.Email,
 		Password: req.Password,
 	})
-
 	if err != nil {
-		c.JSON(500, gin.H{"error": "Failed to create user"})
+		http.Error(w, "Failed to create user", http.StatusInternalServerError)
 		return
 	}
-	c.JSON(200, gin.H{"user": user})
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]any{"user": user})
 }
 
-func (h *userHandler) DeleteUser(c *gin.Context) {
-	userID := c.Param("id")
-	UserIDInt32, err := dataconvertion.ConvertTo32(userID)
+// delete user
+func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
+	id := strings.TrimPrefix(r.URL.Path, "/users/")
+	userID, err := dataconvertion.ConvertTo32(id) //asi lo espera sqlc
 	if err != nil {
-		c.JSON(400, gin.H{"error": "Invalid user ID"})
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
 		return
 	}
 
-	err = h.queries.DeleteUser(c, UserIDInt32)
-	if err != nil {
-		c.JSON(500, gin.H{"error": "Failed to delete user"})
+	if err := h.queries.DeleteUser(r.Context(), userID); err != nil {
+		http.Error(w, "Failed to delete user", http.StatusInternalServerError)
 		return
 	}
-	c.JSON(200, gin.H{"message": "User deleted successfully"})
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"message": "User deleted successfully"})
 }
 
-func (h *userHandler) GetUser(c *gin.Context) {
-	userID := c.Param("id")
-	UserIDInt32, err := dataconvertion.ConvertTo32(userID)
+// get user
+func (h *userHandler) GetUser(w http.ResponseWriter, r *http.Request) {
+	id := strings.TrimPrefix(r.URL.Path, "/users/")
+	userID, err := dataconvertion.ConvertTo32(id)
 	if err != nil {
-		c.JSON(400, gin.H{"error": "Invalid user ID"})
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
 		return
 	}
 
-	user, err := h.queries.GetUserByID(c, UserIDInt32)
+	user, err := h.queries.GetUserByID(r.Context(), userID)
 	if err != nil {
-		c.JSON(500, gin.H{"error": "Failed to get user"})
+		http.Error(w, "Failed to get user", http.StatusInternalServerError)
 		return
 	}
-	c.JSON(200, gin.H{"user": user})
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]any{"user": user})
 }
 
 /*
 DISCLAIMER: revisar esta parte por que ya estaba re quemado y la hice con gpt
 */
 
-// struct para la actualizacion
+// update user
 type UpdateUserRequest struct {
-	Username *string `json:"username"`
+	Username *string `json:"username"` //campo puntero para distinguir entre ausente y vacio
 	Email    *string `json:"email"`
 	Password *string `json:"password"`
 }
 
-func (h *userHandler) UpdateUser(c *gin.Context) {
-
-	userIDStr := c.Param("id")
-	userID, err := dataconvertion.ConvertTo32(userIDStr)
+func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
+	id := strings.TrimPrefix(r.URL.Path, "/users/")
+	userID, err := dataconvertion.ConvertTo32(id)
 	if err != nil {
-		c.JSON(400, gin.H{"error": "Invalid user ID"})
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
 		return
 	}
 
 	var req UpdateUserRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Error al decodificar JSON", http.StatusBadRequest)
 		return
 	}
 
-	// Verificar que exista el usuario
-	_, err = h.queries.GetUserByID(c, userID)
+	// Verificar que exista
+	existingUser, err := h.queries.GetUserByID(r.Context(), userID)
 	if err != nil {
-		c.JSON(404, gin.H{"error": "User not found"})
+		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
 
-	var username, email, password sql.NullString
+	var username, email, password sql.NullString //para manejar campos opcionales
 
 	if req.Username != nil {
-		if _, err := h.queries.GetUserByUsername(c, *req.Username); err == nil {
-			c.JSON(400, gin.H{"error": "Username already exists"})
+		userByUsername, err := h.queries.GetUserByUsername(r.Context(), *req.Username)
+		// Si se encontró un usuario con ese username y NO es el mismo usuario -> error
+		if err == nil && userByUsername.ID != existingUser.ID {
+			http.Error(w, "Username already exists", http.StatusBadRequest)
 			return
 		}
 		username = sql.NullString{String: *req.Username, Valid: true}
-	} else {
-		username = sql.NullString{Valid: false}
 	}
 
 	if req.Email != nil {
-		if _, err := h.queries.GetUserByEmail(c, *req.Email); err == nil {
-			c.JSON(400, gin.H{"error": "Email already exists"})
+		userByEmail, err := h.queries.GetUserByEmail(r.Context(), *req.Email)
+		// Si se encontró un usuario con ese email y NO es el mismo usuario -> error
+		if err == nil && userByEmail.ID != existingUser.ID {
+			http.Error(w, "Email already exists", http.StatusBadRequest)
 			return
 		}
 		email = sql.NullString{String: *req.Email, Valid: true}
-	} else {
-		email = sql.NullString{Valid: false}
 	}
 
 	if req.Password != nil {
 		password = sql.NullString{String: *req.Password, Valid: true}
-	} else {
-		password = sql.NullString{Valid: false}
 	}
 
-	user, err := h.queries.UpdateUser(c, sqlc.UpdateUserParams{
+	user, err := h.queries.UpdateUser(r.Context(), sqlc.UpdateUserParams{
 		ID:      userID,
 		Column2: username,
 		Column3: email,
 		Column4: password,
 	})
 	if err != nil {
-		c.JSON(500, gin.H{"error": "Failed to update user"})
+		http.Error(w, "Failed to update user", http.StatusInternalServerError)
 		return
 	}
 
-	c.JSON(200, gin.H{"user": user})
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]any{"user": user})
 }
