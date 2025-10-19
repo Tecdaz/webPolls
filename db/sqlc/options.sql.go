@@ -138,17 +138,17 @@ func (q *Queries) GetOptionByPollID(ctx context.Context, pollID int32) ([]GetOpt
 
 const updateOption = `-- name: UpdateOption :exec
 UPDATE options
-SET content = $2, correct = $3
-WHERE id = $1
+SET content = $1, correct = $2
+WHERE id = $3
 `
 
 type UpdateOptionParams struct {
-	ID      int32        `json:"id"`
 	Content string       `json:"content"`
 	Correct sql.NullBool `json:"correct"`
+	ID      int32        `json:"id"`
 }
 
 func (q *Queries) UpdateOption(ctx context.Context, arg UpdateOptionParams) error {
-	_, err := q.db.ExecContext(ctx, updateOption, arg.ID, arg.Content, arg.Correct)
+	_, err := q.db.ExecContext(ctx, updateOption, arg.Content, arg.Correct, arg.ID)
 	return err
 }

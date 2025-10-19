@@ -85,16 +85,16 @@ func (q *Queries) GetPollByID(ctx context.Context, id int32) (Poll, error) {
 
 const updatePoll = `-- name: UpdatePoll :exec
 UPDATE polls
-SET title = $2
-WHERE id = $1
+SET title = $1
+WHERE id = $2
 `
 
 type UpdatePollParams struct {
-	ID    int32  `json:"id"`
 	Title string `json:"title"`
+	ID    int32  `json:"id"`
 }
 
 func (q *Queries) UpdatePoll(ctx context.Context, arg UpdatePollParams) error {
-	_, err := q.db.ExecContext(ctx, updatePoll, arg.ID, arg.Title)
+	_, err := q.db.ExecContext(ctx, updatePoll, arg.Title, arg.ID)
 	return err
 }

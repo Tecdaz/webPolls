@@ -1,18 +1,18 @@
 -- name: CreateOption :one
 INSERT INTO options (content, correct, poll_id)
-VALUES ($1, $2, $3)
+VALUES (@content, @correct, @poll_id)
 RETURNING id, content, correct, poll_id;
  
 
 -- name: GetOptionByID :one
 SELECT content, correct
 FROM options
-WHERE id = $1;
+WHERE id = @id;
 
 -- name: GetOptionByPollID :many
 SELECT content, correct
 FROM options
-WHERE poll_id = $1;
+WHERE poll_id = @poll_id;
 
 -- name: GetAllOptions :many
 SELECT content, correct
@@ -20,9 +20,9 @@ FROM options;
 
 -- name: UpdateOption :exec
 UPDATE options
-SET content = $2, correct = $3
-WHERE id = $1;
+SET content = @content, correct = @correct
+WHERE id = @id;
 
 -- name: DeleteOption :exec
 DELETE FROM options
-WHERE id = $1;
+WHERE id = @id;
