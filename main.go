@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"webpolls/db"
 	"webpolls/handlers"
+	"webpolls/middleware"
+	"webpolls/services"
 
 	sqlc "webpolls/db/sqlc"
 )
@@ -14,33 +16,45 @@ func main() {
 	dbConn := db.InitDB()
 	defer dbConn.Close()
 
-	// inicio handlers
+	// Inyección de dependencias
 	queries := sqlc.New(dbConn)
-	userHandler := handlers.NewUserHandler(queries)
-	pollHandler := handlers.NewPollHandler(queries)
+
+	// Inicializar servicios
+	userService := services.NewUserService(queries)
+	pollService := services.NewPollService(queries)
+
+	// Inicializar handlers con los servicios
+	userHandler := handlers.NewUserHandler(userService)
+	pollHandler := handlers.NewPollHandler(pollService)
+
+	// Crear un nuevo mux y registrar todas las rutas
+	mux := http.NewServeMux()
 
 	// Rutas de usuarios
-	http.HandleFunc("POST /users/create", userHandler.CreateUser)
-	http.HandleFunc("GET /users/{id}", userHandler.GetUser)
-	http.HandleFunc("DELETE /users/{id}", userHandler.DeleteUser)
-	http.HandleFunc("PUT /users/{id}", userHandler.UpdateUser)
+	mux.HandleFunc("POST /users/create", userHandler.CreateUser)
+	mux.HandleFunc("GET /users/{id}", userHandler.GetUser)
+	mux.HandleFunc("DELETE /users/{id}", userHandler.DeleteUser)
+	mux.HandleFunc("PUT /users/{id}", userHandler.UpdateUser)
 
 	// Rutas de encuestas
-	http.HandleFunc("POST /polls/create", pollHandler.CreatePoll)
-	http.HandleFunc("GET /polls/", pollHandler.GetPoll)
-	http.HandleFunc("DELETE /polls/", pollHandler.DeletePoll)
+	mux.HandleFunc("POST /polls/create", pollHandler.CreatePoll)
+	mux.HandleFunc("GET /polls/{id}", pollHandler.GetPoll)
+	mux.HandleFunc("DELETE /polls/{id}", pollHandler.DeletePoll)
 
-	// ruta principal
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	// ruta principal y archivos estáticos
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./static/index.html")
 	})
+	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static")))) //para servir el contenido de static/
+	// Aplicar el middleware a todo el mux
+	loggedMux := middleware.LoggingMiddleware(mux)
 
 	// inicio servidor
 	port := ":8080"
 	log.Println("Servidor corriendo en", port)
-	if err := http.ListenAndServe(port, nil); err != nil {
+	// Usar el mux envuelto en el middleware
+	if err := http.ListenAndServe(port, loggedMux); err != nil {
 		log.Fatal("Error al iniciar el servidor:", err)
 	}
 }
