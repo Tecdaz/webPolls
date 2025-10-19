@@ -1,58 +1,67 @@
-# Pruebas API usuarios
+# -----------------
+# Pruebas API de Usuarios (con datos originales)
+# -----------------
 
-# Crear usuario
+# 1. Crear un nuevo usuario y capturar su ID
 POST http://localhost:8080/users/create
 Content-Type: application/json
-
+```json
 {
   "username": "agustina",
   "email": "agus@gmail.com",
   "password": "123456"
 }
-
-HTTP/1.1 200
+```
+HTTP 201
+[Captures]
+user_id: jsonpath "$.data.id"
 [Asserts]
-  jsonpath "$.user.username" == "agustina"
+jsonpath "$.message" == "Usuario creado correctamente"
+jsonpath "$.data.username" == "agustina"
 
-
-# Obtener usuario por id
-GET http://localhost:8080/users/5
+# 2. Obtener el usuario recién creado
+GET http://localhost:8080/users/{{user_id}}
 Accept: application/json
 
-HTTP/1.1 200
+HTTP 200
 [Asserts]
-  jsonpath "$.user.username" == "agustina"
+jsonpath "$.message" == "Usuario obtenido correctamente"
+jsonpath "$.data.id" == {{user_id}}
+jsonpath "$.data.username" == "agustina"
 
-# Actualizar solo email de usuario
-PUT http://localhost:8080/users/5
+# 3. Actualizar solo el email del usuario
+PUT http://localhost:8080/users/{{user_id}}
 Content-Type: application/json
-
+```json
 {
-  "username": "agustina",
   "email": "modificado@gmail.com"
 }
-
-HTTP/1.1 200
+```
+HTTP 200
 [Asserts]
-  jsonpath "$.user.email" == "modificado@gmail.com"
+jsonpath "$.message" == "Usuario actualizado correctamente"
+jsonpath "$.data.email" == "modificado@gmail.com"
+jsonpath "$.data.username" == "agustina"
 
-# Actualizar solo username de usuario
-PUT http://localhost:8080/users/5
+# 4. Actualizar solo el nombre del usuario
+PUT http://localhost:8080/users/{{user_id}}
 Content-Type: application/json
-
+```json
 {
-  "username": "modificado",
-  "email": "modificado@gmail.com"
+  "username": "agustina_modificada"
 }
-
-HTTP/1.1 200
+```
+HTTP 200
 [Asserts]
-  jsonpath "$.user.username" == "modificado"
+jsonpath "$.message" == "Usuario actualizado correctamente"
+jsonpath "$.data.username" == "agustina_modificada"
+jsonpath "$.data.email" == "modificado@gmail.com"
 
-# Eliminar usuario
-DELETE http://localhost:8080/users/5
+# 5. Eliminar el usuario
+DELETE http://localhost:8080/users/{{user_id}}
 Accept: application/json
 
-HTTP/1.1 200
+HTTP 200
 [Asserts]
-  jsonpath "$.message" == "User deleted successfully"
+jsonpath "$.message" == "Usuario eliminado correctamente"
+jsonpath "$.data.username" == "agustina_modificada"
