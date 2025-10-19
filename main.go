@@ -19,33 +19,16 @@ func main() {
 	userHandler := handlers.NewUserHandler(queries)
 	pollHandler := handlers.NewPollHandler(queries)
 
-	// defino las rutas de users
-	http.HandleFunc("/users/create", userHandler.CreateUser)
-	http.HandleFunc("/users/", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodGet:
-			userHandler.GetUser(w, r)
-		case http.MethodDelete:
-			userHandler.DeleteUser(w, r)
-		case http.MethodPut:
-			userHandler.UpdateUser(w, r)
-		default:
-			http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
-		}
-	})
+	// Rutas de usuarios
+	http.HandleFunc("POST /users/create", userHandler.CreateUser)
+	http.HandleFunc("GET /users/{id}", userHandler.GetUser)
+	http.HandleFunc("DELETE /users/{id}", userHandler.DeleteUser)
+	http.HandleFunc("PUT /users/{id}", userHandler.UpdateUser)
 
-	// defino las rutas de polls
-	http.HandleFunc("/polls/create", pollHandler.CreatePoll)
-	http.HandleFunc("/polls/", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodGet:
-			pollHandler.GetPoll(w, r)
-		case http.MethodDelete:
-			pollHandler.DeletePoll(w, r)
-		default:
-			http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
-		}
-	})
+	// Rutas de encuestas
+	http.HandleFunc("POST /polls/create", pollHandler.CreatePoll)
+	http.HandleFunc("GET /polls/", pollHandler.GetPoll)
+	http.HandleFunc("DELETE /polls/", pollHandler.DeletePoll)
 
 	// ruta principal
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {

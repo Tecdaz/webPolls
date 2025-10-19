@@ -4,10 +4,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/http"
-	"strings"
 
-	sqlc "webpolls/db/sqlc"
 	"webpolls/dataconvertion"
+	sqlc "webpolls/db/sqlc"
 )
 
 type userHandler struct {
@@ -27,11 +26,6 @@ type CreateUserRequest struct {
 }
 
 func (h *userHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost { //solo uso de POST
-		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
-		return
-	}
-
 	var req CreateUserRequest //verificacion de cuerpo json
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Error al decodificar JSON", http.StatusBadRequest)
@@ -45,7 +39,7 @@ func (h *userHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// asegurar que no exista ni el usuario ni el mail
-	_, err := h.queries.GetUserByUsername(r.Context(), req.Username) //uso de r.context para que las consultas a la bdd se cancelen automaticamente si el cliente corta la conexion
+	_, err := h.queries.GetUserByUsername(r.Context(), req.Username)
 	if err == nil {
 		http.Error(w, "Username already exists", http.StatusBadRequest)
 		return
@@ -73,25 +67,26 @@ func (h *userHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 // delete user
 func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
-	id := strings.TrimPrefix(r.URL.Path, "/users/")
+	id := r.PathValue("id")
 	userID, err := dataconvertion.ConvertTo32(id) //asi lo espera sqlc
 	if err != nil {
 		http.Error(w, "Invalid user ID", http.StatusBadRequest)
 		return
 	}
 
-	if err := h.queries.DeleteUser(r.Context(), userID); err != nil {
+	user, err := h.queries.DeleteUser(r.Context(), userID)
+	if err != nil {
 		http.Error(w, "Failed to delete user", http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"message": "User deleted successfully"})
+	json.NewEncoder(w).Encode(map[string]string{"message": "User deleted successfully", "username": user})
 }
 
 // get user
 func (h *userHandler) GetUser(w http.ResponseWriter, r *http.Request) {
-	id := strings.TrimPrefix(r.URL.Path, "/users/")
+	id := r.PathValue("id")
 	userID, err := dataconvertion.ConvertTo32(id)
 	if err != nil {
 		http.Error(w, "Invalid user ID", http.StatusBadRequest)
@@ -108,10 +103,6 @@ func (h *userHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]any{"user": user})
 }
 
-/*
-DISCLAIMER: revisar esta parte por que ya estaba re quemado y la hice con gpt
-*/
-
 // update user
 type UpdateUserRequest struct {
 	Username *string `json:"username"` //campo puntero para distinguir entre ausente y vacio
@@ -120,7 +111,7 @@ type UpdateUserRequest struct {
 }
 
 func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
-	id := strings.TrimPrefix(r.URL.Path, "/users/")
+	id := r.PathValue("id")
 	userID, err := dataconvertion.ConvertTo32(id)
 	if err != nil {
 		http.Error(w, "Invalid user ID", http.StatusBadRequest)
@@ -167,10 +158,10 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user, err := h.queries.UpdateUser(r.Context(), sqlc.UpdateUserParams{
-		ID:      userID,
-		Column2: username,
-		Column3: email,
-		Column4: password,
+		ID:       userID,
+		Username: username,
+		Email:    email,
+		Password: password,
 	})
 	if err != nil {
 		http.Error(w, "Failed to update user", http.StatusInternalServerError)

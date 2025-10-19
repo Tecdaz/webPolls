@@ -28,11 +28,6 @@ type CreatePollRequest struct {
 }
 
 func (h *PollHandler) CreatePoll(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
-		return
-	}
-
 	var req CreatePollRequest
 
 	if req.Question == "" || len(req.Options) < 2 {
@@ -80,11 +75,6 @@ func (h *PollHandler) CreatePoll(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *PollHandler) DeletePoll(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodDelete {
-		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
-		return
-	}
-
 	idStr := r.URL.Query().Get("id")
 	if idStr == "" {
 		http.Error(w, "Missing id parameter", http.StatusBadRequest)
@@ -110,11 +100,6 @@ func (h *PollHandler) DeletePoll(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *PollHandler) GetPoll(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
-		return
-	}
-
 	idStr := r.URL.Query().Get("id")
 	if idStr == "" {
 		http.Error(w, "Missing id parameter", http.StatusBadRequest)
