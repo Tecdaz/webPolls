@@ -61,3 +61,11 @@ HTTP 200
 [Asserts]
 jsonpath "$.message" == "Encuesta eliminada correctamente"
 jsonpath "$.data" == null
+
+# 4. Eliminar el usuario
+DELETE http://localhost:8080/users/{{new_user_id}}
+Accept: application/json
+
+HTTP 200
+[Asserts]
+jsonpath "$.message" == "Usuario eliminado correctamente"
