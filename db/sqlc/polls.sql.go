@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 )
 
 const createPoll = `-- name: CreatePoll :one
@@ -38,13 +39,24 @@ func (q *Queries) DeletePoll(ctx context.Context, id int32) error {
 }
 
 const getAllPolls = `-- name: GetAllPolls :many
-SELECT title, user_id
-FROM polls
+SELECT
+    p.id AS poll_id,
+    p.title,
+    p.user_id,
+    o.id AS option_id,
+    o.content,
+    o.correct
+FROM polls p
+LEFT JOIN options o ON p.id = o.poll_id
 `
 
 type GetAllPollsRow struct {
-	Title  string `json:"title"`
-	UserID int32  `json:"user_id"`
+	PollID   int32          `json:"poll_id"`
+	Title    string         `json:"title"`
+	UserID   int32          `json:"user_id"`
+	OptionID sql.NullInt32  `json:"option_id"`
+	Content  sql.NullString `json:"content"`
+	Correct  sql.NullBool   `json:"correct"`
 }
 
 func (q *Queries) GetAllPolls(ctx context.Context) ([]GetAllPollsRow, error) {
@@ -56,7 +68,14 @@ func (q *Queries) GetAllPolls(ctx context.Context) ([]GetAllPollsRow, error) {
 	var items []GetAllPollsRow
 	for rows.Next() {
 		var i GetAllPollsRow
-		if err := rows.Scan(&i.Title, &i.UserID); err != nil {
+		if err := rows.Scan(
+			&i.PollID,
+			&i.Title,
+			&i.UserID,
+			&i.OptionID,
+			&i.Content,
+			&i.Correct,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

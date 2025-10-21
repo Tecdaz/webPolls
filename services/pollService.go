@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	db "webpolls/db/sqlc"
 	sqlc "webpolls/db/sqlc"
 )
 
@@ -113,6 +114,10 @@ func (s *PollService) GetPollByID(ctx context.Context, id int32) (*PollResponse,
 		UserID:  poll.UserID,
 		Options: optionsResponse,
 	}, nil
+}
+
+func (s *PollService) GetPolls(ctx context.Context) ([]db.GetAllPollsRow, error) {
+	return s.queries.GetAllPolls(ctx)
 }
 
 func (s *PollService) DeletePoll(ctx context.Context, id int32) error {

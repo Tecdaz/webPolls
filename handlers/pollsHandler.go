@@ -87,3 +87,13 @@ func (h *PollHandler) GetPoll(w http.ResponseWriter, r *http.Request) {
 
 	RespondWithData(w, http.StatusOK, poll, "Encuesta obtenida correctamente")
 }
+
+func (h *PollHandler) GetPolls(w http.ResponseWriter, r *http.Request) {
+	polls, err := h.service.GetPolls(r.Context())
+	if err != nil {
+		RespondWithError(w, http.StatusInternalServerError, "No se pudieron obtener las encuestas")
+		return
+	}
+
+	RespondWithData(w, http.StatusOK, polls, "Encuestas obtenidas correctamente")
+}

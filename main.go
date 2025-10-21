@@ -40,6 +40,7 @@ func main() {
 	mux.HandleFunc("POST /polls/create", pollHandler.CreatePoll)
 	mux.HandleFunc("GET /polls/{id}", pollHandler.GetPoll)
 	mux.HandleFunc("DELETE /polls/{id}", pollHandler.DeletePoll)
+	mux.HandleFunc("GET /polls", pollHandler.GetPolls)
 
 	// ruta principal y archivos estáticos
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {

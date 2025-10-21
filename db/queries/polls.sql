@@ -9,8 +9,16 @@ FROM polls
 WHERE id = @id;
 
 -- name: GetAllPolls :many
-SELECT title, user_id
-FROM polls;
+SELECT
+    p.id AS poll_id,
+    p.title,
+    p.user_id,
+    o.id AS option_id,
+    o.content,
+    o.correct
+FROM polls p
+LEFT JOIN options o ON p.id = o.poll_id;
+
 
 -- name: UpdatePoll :exec
 UPDATE polls
