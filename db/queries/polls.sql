@@ -17,7 +17,8 @@ SELECT
     o.content,
     o.correct
 FROM polls p
-LEFT JOIN options o ON p.id = o.poll_id;
+LEFT JOIN options o ON p.id = o.poll_id
+ORDER BY p.id ASC;
 
 
 -- name: UpdatePoll :exec

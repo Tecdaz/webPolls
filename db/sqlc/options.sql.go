@@ -52,11 +52,13 @@ func (q *Queries) DeleteOption(ctx context.Context, id int32) error {
 }
 
 const getAllOptions = `-- name: GetAllOptions :many
-SELECT content, correct
+SELECT id, content, correct
 FROM options
+ORDER BY id ASC
 `
 
 type GetAllOptionsRow struct {
+	ID      int32        `json:"id"`
 	Content string       `json:"content"`
 	Correct sql.NullBool `json:"correct"`
 }
@@ -70,7 +72,7 @@ func (q *Queries) GetAllOptions(ctx context.Context) ([]GetAllOptionsRow, error)
 	var items []GetAllOptionsRow
 	for rows.Next() {
 		var i GetAllOptionsRow
-		if err := rows.Scan(&i.Content, &i.Correct); err != nil {
+		if err := rows.Scan(&i.ID, &i.Content, &i.Correct); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -85,30 +87,39 @@ func (q *Queries) GetAllOptions(ctx context.Context) ([]GetAllOptionsRow, error)
 }
 
 const getOptionByID = `-- name: GetOptionByID :one
-SELECT content, correct
+SELECT id, content, correct, poll_id
 FROM options
 WHERE id = $1
 `
 
 type GetOptionByIDRow struct {
+	ID      int32        `json:"id"`
 	Content string       `json:"content"`
 	Correct sql.NullBool `json:"correct"`
+	PollID  int32        `json:"poll_id"`
 }
 
 func (q *Queries) GetOptionByID(ctx context.Context, id int32) (GetOptionByIDRow, error) {
 	row := q.db.QueryRowContext(ctx, getOptionByID, id)
 	var i GetOptionByIDRow
-	err := row.Scan(&i.Content, &i.Correct)
+	err := row.Scan(
+		&i.ID,
+		&i.Content,
+		&i.Correct,
+		&i.PollID,
+	)
 	return i, err
 }
 
 const getOptionByPollID = `-- name: GetOptionByPollID :many
-SELECT content, correct
+SELECT id, content, correct
 FROM options
 WHERE poll_id = $1
+ORDER BY id ASC
 `
 
 type GetOptionByPollIDRow struct {
+	ID      int32        `json:"id"`
 	Content string       `json:"content"`
 	Correct sql.NullBool `json:"correct"`
 }
@@ -122,7 +133,7 @@ func (q *Queries) GetOptionByPollID(ctx context.Context, pollID int32) ([]GetOpt
 	var items []GetOptionByPollIDRow
 	for rows.Next() {
 		var i GetOptionByPollIDRow
-		if err := rows.Scan(&i.Content, &i.Correct); err != nil {
+		if err := rows.Scan(&i.ID, &i.Content, &i.Correct); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -134,6 +145,22 @@ func (q *Queries) GetOptionByPollID(ctx context.Context, pollID int32) ([]GetOpt
 		return nil, err
 	}
 	return items, nil
+}
+
+const unsetOtherOptionsCorrect = `-- name: UnsetOtherOptionsCorrect :exec
+UPDATE options
+SET correct = false
+WHERE poll_id = $1 AND id != $2
+`
+
+type UnsetOtherOptionsCorrectParams struct {
+	PollID int32 `json:"poll_id"`
+	ID     int32 `json:"id"`
+}
+
+func (q *Queries) UnsetOtherOptionsCorrect(ctx context.Context, arg UnsetOtherOptionsCorrectParams) error {
+	_, err := q.db.ExecContext(ctx, unsetOtherOptionsCorrect, arg.PollID, arg.ID)
+	return err
 }
 
 const updateOption = `-- name: UpdateOption :exec

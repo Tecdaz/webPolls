@@ -1,175 +1,60 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/static/styles.css">
-    <title>Document</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/static/styles.css" />
+  <title>WebPolls - Creador de Encuestas</title>
+  <script src="/static/app.js" defer></script>
 </head>
+
 <body>
-    <header>
-      <nav>
-        <div class="nav-container">
-          <div class="logo">
-            <a href="#inicio">
-              <img
-                src="/static/logo.svg"
-                alt="Logo"
-              />
-            </a>
-          </div>
+  <header>
+    <nav>
+      <div class="nav-container">
+        <div class="logo">
+          <a href="#inicio" aria-label="Inicio">
+            <img src="/static/logo.svg" alt="Logo de WebPolls" />
+          </a>
+        </div>
 
-          <!-- Menú Desktop -->
-          <div class="desktop-menu">
-            <a href="#programas">MENU</a>
-            <a href="#actividades">ENCUESTAS</a>
-            <a href="#instalaciones">PERFIL</a>
-          </div>
+        <div class="desktop-menu">
+          <a href="#crear" aria-label="Ir a crear encuesta">Crear</a>
+          <a href="#encuestas" aria-label="Ver encuestas">Encuestas</a>
+          <a href="#perfil" aria-label="Ir al perfil">Perfil</a>
+        </div>
+      </div>
+    </nav>
+  </header>
 
-        </div>
-        </div>
-      </nav>
-    </header>
-    <section class="main">
-        <h1 class="h1UnderHeader">Bienvenido a WebPolls</h1>
-        <div class="createPollDiv">
-            <h1>Crea una encuesta</h1>
-            <form id="pollForm">
-                <label for="question">Pregunta de la Encuesta</label>
-                <input type="text" id="question" name="question">
-                <div id="optsContainer">
-                    <!--aca se van a ir agregando las preguntas-->
-                </div>
-                <button type="button" id="addOptBtn"> Agregar Opcion</button>
-                <button>crear Encuesta</button>
-            </form>
-        </div>
-        <section class="pollsSection">
-            <div id="pollsContainer">
-                <!--aca van listadas las polls-->
-            </div>
-        </section>
+  <main class="main">
+    <h1 class="h1UnderHeader">Bienvenido a WebPolls</h1>
+
+    <!--creacion de encuestas-->
+    <section id="crear" class="createPollDiv" aria-label="Formulario de creación de encuestas">
+      <h1>Crea una encuesta</h1>
+      <form id="pollForm" autocomplete="off">
+        <label for="question">Pregunta de la Encuesta</label>
+        <input type="text" id="question" name="question" placeholder="Escribe la pregunta..." required />
+
+        <div id="optsContainer"></div>
+
+        <button type="button" id="addOptBtn">Agregar Opción</button>
+        <button type="submit">Crear Encuesta</button>
+
+        <div id="formMessage" class="message" style="display: none;"></div>
+      </form>
     </section>
-<script>
-//esta seccion se encarga de traer las polls del back 
-    async function getPolls() {
-        try {
-            const response = await fetch("/polls");
-            const result = await response.json();
-            const polls = result.data;
 
-            // agrupar por poll_id
-            const grouped = {};
-            polls.forEach(item => {
-            if (!grouped[item.poll_id]) {
-                grouped[item.poll_id] = {
-                title: item.title,
-                user_id: item.user_id,
-                options: [],
-                poll_id: item.poll_id
-                };
-            }
-
-            
-            if (item.content?.Valid) {
-                grouped[item.poll_id].options.push(item.content.String);
-            }
-            });
-
-            const container = document.getElementById("pollsContainer");
-            container.innerHTML = "";
-
-            // renderiza encuestas con sus opciones
-            Object.values(grouped).forEach(poll => {
-            const div = document.createElement("div");
-            div.classList.add("singlePollDiv")
-            div.innerHTML = `
-                <h3>${poll.title}</h3>
-                <ul>${poll.options.map(opt => `<li>${opt}</li>`).join("")}</ul>
-            `;
-
-            const deletePollBtn = document.createElement("button")
-            deletePollBtn.textContent = "Eliminar Encuesta"
-            deletePollBtn.classList.add("deleteBtn")
-            deletePollBtn.dataset.id = poll.poll_id
-            deletePollBtn.addEventListener("click", async(e) => {
-                const pollID = e.target.dataset.id
-                await deletePoll(pollID)
-            })
-            
-            div.appendChild(deletePollBtn)
-            container.appendChild(div);
-            
-
-            });
-        } catch (err) {
-            console.error("error getting data", err);
-        }   
-    }
-
-//esta seccion se encarga de la logica del boton para eliminar polls
-    async function deletePoll(pollID){
-        console.log(pollID)
-        
-        const response = await fetch (`/polls/${pollID}`,{
-            method: "DELETE",
-            headers: {"Content-type": "application/json"},
-        })
-        if (response.ok) {
-            getPolls()
-        }else{console.log("hubo un error al intentar eliminar")}
-        
-    }
-
-
-//esta seccion se encarga de enviar el formulario usando un JSON al endpoint
-        document.getElementById("pollForm").addEventListener("submit", async(e)=>{
-            e.preventDefault();
-
-            const question = e.target.question.value;
-            const options = Array.from(document.querySelectorAll('input[name="options[]"]'))
-  .map(input => ({ content: input.value }));
-
-            const body = {
-                question,
-                options,
-                user_id : 3 //esto lo dejo fijo hasta que se agregue la feature de usuarios 
-            }
-
-            const response = await fetch ( "/polls/create", {
-                method: "POST",
-                headers: {"Content-type": "application/json"},
-                body: JSON.stringify(body)
-            })
-
-            const data = await response.json()
-            console.log(data)
-            getPolls()
-        })
-    
-//esta seccion se encarga de la parte dinamca del formulario, va agregando preguntas
-        const container = document.getElementById("optsContainer");
-        const aggBtn = document.getElementById("addOptBtn");
-
-        aggBtn.addEventListener("click", ()=>{
-        const pregDiv = document.createElement("div")
-        pregDiv.classList.add("opt")
-        
-        pregDiv.innerHTML =
-        `
-            <label>Opcion</label>
-            <input type="text" id="preg" name="options[]" required></input>
-            <button type="button" class="deleteOptBtn">Eliminar</button>
-        `;
-        
-        pregDiv.querySelector('.deleteOptBtn').addEventListener("click", ()=>{
-            pregDiv.remove();
-        })
-
-        container.appendChild(pregDiv)
-    })
-
-    getPolls()
-    </script>
+    <!--vista de encuestas-->
+    <section id="encuestas" class="pollsSection" aria-label="Listado de encuestas creadas">
+      <div id="pollsContainer">
+        <p class="no-polls">No hay encuestas creadas todavía.</p>
+      </div>
+      <div id="loadingMessage" class="loading" style="display: none;">
+        Cargando encuestas...
+      </div>
+    </section>
+  </main>
 </body>
 </html>

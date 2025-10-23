@@ -41,12 +41,13 @@ func main() {
 	mux.HandleFunc("GET /polls/{id}", pollHandler.GetPoll)
 	mux.HandleFunc("DELETE /polls/{id}", pollHandler.DeletePoll)
 	mux.HandleFunc("GET /polls", pollHandler.GetPolls)
+	mux.HandleFunc("PUT /options/{id}", pollHandler.UpdateOption)
 
-	// ruta principal y archivos estáticos
+	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
+
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./static/index.html")
 	})
-	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 
 	// Aplicar el middleware a todo el mux
 	loggedMux := middleware.LoggingMiddleware(mux)

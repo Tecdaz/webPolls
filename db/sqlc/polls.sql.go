@@ -48,6 +48,7 @@ SELECT
     o.correct
 FROM polls p
 LEFT JOIN options o ON p.id = o.poll_id
+ORDER BY p.id ASC
 `
 
 type GetAllPollsRow struct {
