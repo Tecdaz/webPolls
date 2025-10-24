@@ -5,9 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"webpolls/dataconvertion"
-	sqlc "webpolls/db/sqlc"
 	"webpolls/services"
+	"webpolls/utils"
 )
 
 // userHandler ahora depende de UserService
@@ -20,28 +19,15 @@ func NewUserHandler(service *services.UserService) *userHandler {
 	return &userHandler{service: service}
 }
 
-// CreateUserRequest sigue siendo relevante para el handler, para decodificar el JSON
-type CreateUserRequest struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
 func (h *userHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
-	var req CreateUserRequest
+	var req services.UserRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		RespondWithError(w, http.StatusBadRequest, "Payload de creacion invalido")
 		return
 	}
 
-	params := sqlc.CreateUserParams{
-		Username: req.Username,
-		Email:    req.Email,
-		Password: req.Password,
-	}
-
 	// La lógica de negocio ahora se llama desde el servicio
-	user, err := h.service.CreateUser(r.Context(), params)
+	user, err := h.service.CreateUser(r.Context(), req)
 	if err != nil {
 		RespondWithError(w, http.StatusBadRequest, err.Error()) // El servicio devuelve errores de negocio claros
 		return
@@ -52,7 +38,7 @@ func (h *userHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	userID, err := dataconvertion.ConvertTo32(id)
+	userID, err := utils.ConvertTo32(id)
 	if err != nil {
 		RespondWithError(w, http.StatusBadRequest, "Id de usuario invalido")
 		return
@@ -69,7 +55,7 @@ func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 func (h *userHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	userID, err := dataconvertion.ConvertTo32(id)
+	userID, err := utils.ConvertTo32(id)
 	if err != nil {
 		RespondWithError(w, http.StatusBadRequest, "Id de usuario invalido")
 		return
@@ -88,36 +74,22 @@ func (h *userHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	RespondWithData(w, http.StatusOK, user, "Usuario obtenido correctamente")
 }
 
-type UpdateUserRequest struct {
-	Username *string `json:"username"`
-	Email    *string `json:"email"`
-	Password *string `json:"password"`
-}
-
 func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	userID, err := dataconvertion.ConvertTo32(id)
+	userID, err := utils.ConvertTo32(id)
 	if err != nil {
 		RespondWithError(w, http.StatusBadRequest, "Id de usuario invalido")
 		return
 	}
 
-	var req UpdateUserRequest
+	var req services.UpdateUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		RespondWithError(w, http.StatusBadRequest, "Payload de actualizacion invalido")
 		return
 	}
 
-	// Convertimos el modelo del handler al modelo del servicio
-	serviceParams := services.UpdateUserParams{
-		Username: req.Username,
-		Email:    req.Email,
-		Password: req.Password,
-	}
-
-	user, err := h.service.UpdateUser(r.Context(), userID, serviceParams)
+	user, err := h.service.UpdateUser(r.Context(), userID, req)
 	if err != nil {
-		// El servicio devuelve errores de negocio que podemos mapear a códigos de estado HTTP
 		if err.Error() == "usuario no encontrado" {
 			RespondWithError(w, http.StatusNotFound, err.Error())
 		} else {
@@ -127,4 +99,14 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	RespondWithData(w, http.StatusOK, user, "Usuario actualizado correctamente")
+}
+
+func (h *userHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
+	users, err := h.service.GetUsers(r.Context())
+	if err != nil {
+		RespondWithError(w, http.StatusInternalServerError, "No se pudieron obtener los usuarios")
+		return
+	}
+
+	RespondWithData(w, http.StatusOK, users, "Usuarios obtenidos correctamente")
 }

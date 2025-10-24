@@ -4,21 +4,23 @@
 
 package db
 
-import (
-	"database/sql"
-)
-
 type Option struct {
-	ID      int32        `json:"id"`
-	Content string       `json:"content"`
-	PollID  int32        `json:"poll_id"`
-	Correct sql.NullBool `json:"correct"`
+	ID      int32  `json:"id"`
+	Content string `json:"content"`
+	PollID  int32  `json:"poll_id"`
 }
 
 type Poll struct {
 	ID     int32  `json:"id"`
 	Title  string `json:"title"`
 	UserID int32  `json:"user_id"`
+}
+
+type Result struct {
+	ID       int32 `json:"id"`
+	PollID   int32 `json:"poll_id"`
+	OptionID int32 `json:"option_id"`
+	UserID   int32 `json:"user_id"`
 }
 
 type User struct {

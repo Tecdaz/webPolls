@@ -19,8 +19,19 @@ CREATE TABLE IF NOT EXISTS options (
     id SERIAL PRIMARY KEY,
     content VARCHAR(255) NOT NULL,
     poll_id INTEGER NOT NULL,
-    correct BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (poll_id) REFERENCES polls(id) ON DELETE CASCADE
+    FOREIGN KEY (poll_id) REFERENCES polls(id) ON DELETE CASCADE,
+    CONSTRAINT unique_option UNIQUE (poll_id, content)
+);
+
+CREATE TABLE IF NOT EXISTS results (    
+    id SERIAL PRIMARY KEY,
+    poll_id INTEGER NOT NULL,
+    option_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    FOREIGN KEY (poll_id) REFERENCES polls(id) ON DELETE CASCADE,
+    FOREIGN KEY (option_id) REFERENCES options(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT unique_result UNIQUE (poll_id, option_id, user_id)
 );
 
 -- Índices para mejorar el rendimiento

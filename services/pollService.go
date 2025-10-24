@@ -2,37 +2,31 @@ package services
 
 import (
 	"context"
-	"database/sql"
 	"errors"
+	"log"
 	db "webpolls/db/sqlc"
-	sqlc "webpolls/db/sqlc"
 )
 
 // PollService encapsula la lógica de negocio para las encuestas.
 type PollService struct {
-	Queries *sqlc.Queries // <-- Exportado (con mayúscula)
+	Queries *db.Queries // <-- Exportado (con mayúscula)
 }
 
 // NewPollService crea una nueva instancia de PollService.
-func NewPollService(queries *sqlc.Queries) *PollService {
+func NewPollService(queries *db.Queries) *PollService {
 	return &PollService{Queries: queries} // <-- actualizado
 }
 
-type OptionResponse struct {
-	ID      int    `json:"id"` // <--- necesario para PUT
+type OptionResponse = db.Option
+
+type OptionRequest struct {
 	Content string `json:"content"`
-	Correct bool   `json:"correct"`
 }
 
-type OptionCreatePoll struct {
-	Content string `json:"content"`
-	Correct bool   `json:"correct"`
-}
-
-type CreatePollParams struct {
-	Question string
-	Options  []OptionCreatePoll
-	UserID   int32 //  usar el ID del usuario autenticado
+type PollRequest struct {
+	Question string          `json:"question"`
+	Options  []OptionRequest `json:"options"`
+	UserID   int32           `json:"user_id"`
 }
 
 type PollResponse struct {
@@ -42,25 +36,19 @@ type PollResponse struct {
 	Options []OptionResponse `json:"options"`
 }
 
-type PollWithOptions struct {
-	ID      int32            `json:"poll_id"`
-	Title   string           `json:"title"`
-	UserID  int32            `json:"user_id"`
-	Options []OptionResponse `json:"options"`
-}
-
-func (s *PollService) CreatePoll(ctx context.Context, params CreatePollParams) (*PollResponse, error) {
+func (s *PollService) CreatePoll(ctx context.Context, params PollRequest) (*PollResponse, error) {
 	if params.Question == "" {
-		return nil, errors.New("La pregunta no puede estar vacía")
+		return nil, errors.New("la pregunta no puede estar vacía")
 	}
 	if len(params.Options) < 2 {
-		return nil, errors.New("Deben ser al menos 2 opciones")
+		return nil, errors.New("deben ser al menos 2 opciones")
 	}
 	if len(params.Options) > 4 {
-		return nil, errors.New("Deben ser máximo 4 opciones")
+		return nil, errors.New("deben ser máximo 4 opciones")
 	}
 
-	poll, err := s.Queries.CreatePoll(ctx, sqlc.CreatePollParams{
+	log.Println(params)
+	poll, err := s.Queries.CreatePoll(ctx, db.CreatePollParams{
 		Title:  params.Question,
 		UserID: params.UserID,
 	})
@@ -69,11 +57,10 @@ func (s *PollService) CreatePoll(ctx context.Context, params CreatePollParams) (
 	}
 
 	// Crear opciones asociadas
-	var options []sqlc.CreateOptionRow
+	var options []db.Option
 	for _, optionContent := range params.Options {
-		option, err := s.Queries.CreateOption(ctx, sqlc.CreateOptionParams{
+		option, err := s.Queries.CreateOption(ctx, db.CreateOptionParams{
 			Content: optionContent.Content,
-			Correct: sql.NullBool{Bool: optionContent.Correct, Valid: true},
 			PollID:  poll.ID,
 		})
 		if err != nil {
@@ -82,20 +69,11 @@ func (s *PollService) CreatePoll(ctx context.Context, params CreatePollParams) (
 		options = append(options, option)
 	}
 
-	var optionsResponse []OptionResponse
-	for _, option := range options {
-		optionsResponse = append(optionsResponse, OptionResponse{
-			ID:      int(option.ID),
-			Content: option.Content,
-			Correct: option.Correct.Bool,
-		})
-	}
-
 	data := &PollResponse{
 		ID:      poll.ID,
 		Title:   poll.Title,
 		UserID:  poll.UserID,
-		Options: optionsResponse,
+		Options: options,
 	}
 	return data, nil
 }
@@ -106,47 +84,35 @@ func (s *PollService) GetPollByID(ctx context.Context, id int32) (*PollResponse,
 		return nil, err
 	}
 
-	options, err := s.Queries.GetOptionByPollID(ctx, id)
-	if err != nil {
-		return nil, err
-	}
+	var options []OptionResponse
 
-	var optionsResponse []OptionResponse
-	for _, option := range options {
-		optionsResponse = append(optionsResponse, OptionResponse{
-			ID:      int(option.ID),
-			Content: option.Content,
-			Correct: option.Correct.Bool,
+	for _, pollRow := range poll {
+		options = append(options, OptionResponse{
+			ID:      pollRow.OptionID,
+			Content: pollRow.OptionContent,
 		})
 	}
 
 	return &PollResponse{
-		ID:      poll.ID,
-		Title:   poll.Title,
-		UserID:  poll.UserID,
-		Options: optionsResponse,
+		ID:      poll[0].ID,
+		Title:   poll[0].Title,
+		UserID:  poll[0].UserID,
+		Options: options,
 	}, nil
 }
 
-func (s *PollService) GetPolls(ctx context.Context) ([]db.GetAllPollsRow, error) {
-	return s.Queries.GetAllPolls(ctx)
-}
-
-func (s *PollService) DeletePoll(ctx context.Context, id int32) error {
-	return s.Queries.DeletePoll(ctx, id)
-}
-
-func (s *PollService) GetPollsWithOptions(ctx context.Context) ([]PollWithOptions, error) {
+func (s *PollService) GetPolls(ctx context.Context) ([]*PollResponse, error) {
 	rows, err := s.Queries.GetAllPolls(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	// Vamos a agrupar las opciones por encuesta
-	pollsMap := make(map[int32]*PollWithOptions)
+	pollsMap := make(map[int32]*PollResponse)
+
 	for _, row := range rows {
-		if _, exists := pollsMap[row.PollID]; !exists {
-			pollsMap[row.PollID] = &PollWithOptions{
+		// Si la encuesta aún no está en el mapa, la creamos.
+		if _, ok := pollsMap[row.PollID]; !ok {
+			pollsMap[row.PollID] = &PollResponse{
 				ID:      row.PollID,
 				Title:   row.Title,
 				UserID:  row.UserID,
@@ -154,21 +120,65 @@ func (s *PollService) GetPollsWithOptions(ctx context.Context) ([]PollWithOption
 			}
 		}
 
-		// Si hay opción (puede ser NULL por el LEFT JOIN)
-		if row.OptionID.Valid {
-			pollsMap[row.PollID].Options = append(pollsMap[row.PollID].Options, OptionResponse{
-				ID:      int(row.OptionID.Int32),
-				Content: row.Content.String,
-				Correct: row.Correct.Bool,
-			})
-		}
+		// Agregamos la opción actual a la encuesta correspondiente.
+		poll := pollsMap[row.PollID]
+		poll.Options = append(poll.Options, OptionResponse{
+			ID:      row.OptionID,
+			Content: row.OptionContent,
+			// PollID no es necesario en OptionResponse, pero si lo fuera, lo asignaríamos aquí.
+			// PollID:  row.PollID,
+		})
 	}
 
-	// Convertir el mapa a slice
-	var result []PollWithOptions
+	// Convertimos el mapa de punteros a una lista de valores.
+	var result []*PollResponse
 	for _, poll := range pollsMap {
-		result = append(result, *poll)
+		result = append(result, poll)
 	}
 
 	return result, nil
+}
+
+func (s *PollService) DeletePoll(ctx context.Context, id int32) error {
+	return s.Queries.DeletePoll(ctx, id)
+}
+
+func (s *PollService) UpdateOption(ctx context.Context, params OptionResponse) (*OptionResponse, error) {
+	if params.Content == "" {
+		return nil, errors.New("el contenido de la opción no puede estar vacío")
+	}
+
+	updatedOption, err := s.Queries.UpdateOption(ctx, db.UpdateOptionParams{
+		ID:      params.ID,
+		Content: params.Content,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &OptionResponse{
+		ID:      updatedOption.ID,
+		Content: updatedOption.Content,
+		PollID:  updatedOption.PollID,
+	}, nil
+}
+
+func (s *PollService) DeleteOption(ctx context.Context, id int32, poll_id int32) error {
+	options, err := s.Queries.GetOptionByPollID(ctx, poll_id)
+	if err != nil {
+		return err
+	}
+
+	if len(options) == 2 {
+		return errors.New("la encuesta debe tener al menos 2 opciones")
+	}
+
+	for _, option := range options {
+		if option.ID == id {
+			return s.Queries.DeleteOption(ctx, id)
+		}
+	}
+
+	return errors.New("opcion no encontrada")
 }

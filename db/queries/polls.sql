@@ -3,10 +3,17 @@ INSERT INTO polls (title, user_id)
 VALUES (@title, @user_id)
 RETURNING id,title, user_id;
 
--- name: GetPollByID :one
-SELECT id, title, user_id
+-- name: GetPollByID :many
+SELECT 
+    polls.id,
+    polls.title,
+    polls.user_id,
+    options.id AS option_id,
+    options.content AS option_content
 FROM polls
-WHERE id = @id;
+inner JOIN options ON polls.id = options.poll_id
+WHERE polls.id = @id
+ORDER BY polls.id ASC;
 
 -- name: GetAllPolls :many
 SELECT
@@ -14,12 +21,10 @@ SELECT
     p.title,
     p.user_id,
     o.id AS option_id,
-    o.content,
-    o.correct
+    o.content AS option_content
 FROM polls p
-LEFT JOIN options o ON p.id = o.poll_id
+inner JOIN options o ON p.id = o.poll_id
 ORDER BY p.id ASC;
-
 
 -- name: UpdatePoll :exec
 UPDATE polls

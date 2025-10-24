@@ -6,9 +6,8 @@ import (
 	"log"
 	"net/http"
 
-	"webpolls/dataconvertion"
-	db "webpolls/db/sqlc"
 	"webpolls/services"
+	"webpolls/utils"
 )
 
 // PollHandler ahora depende de PollService
@@ -21,41 +20,14 @@ func NewPollHandler(service *services.PollService) *PollHandler {
 	return &PollHandler{service: service}
 }
 
-// CreatePollRequest sigue siendo relevante para el handler, para decodificar el JSON
-type CreatePollRequest struct {
-	Question string                      `json:"question"`
-	Options  []services.OptionCreatePoll `json:"options"`
-	UserID   int32                       `json:"user_id"`
-}
-
-// agregado para incluir las opciones completas
-type Option struct {
-	ID      int    `json:"id"`
-	Content string `json:"content"`
-	Correct bool   `json:"correct"`
-}
-
-type PollWithOptions struct {
-	PollID  int      `json:"poll_id"`
-	Title   string   `json:"title"`
-	UserID  int32    `json:"user_id"`
-	Options []Option `json:"options"`
-}
-
 func (h *PollHandler) CreatePoll(w http.ResponseWriter, r *http.Request) {
-	var req CreatePollRequest
+	var req services.PollRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		RespondWithError(w, http.StatusBadRequest, "Cuerpo json invalido")
 		return
 	}
 
-	params := services.CreatePollParams{
-		Question: req.Question,
-		Options:  req.Options,
-		UserID:   req.UserID,
-	}
-
-	data, err := h.service.CreatePoll(r.Context(), params)
+	data, err := h.service.CreatePoll(r.Context(), req)
 	if err != nil {
 		RespondWithError(w, http.StatusBadRequest, err.Error())
 		return
@@ -66,7 +38,7 @@ func (h *PollHandler) CreatePoll(w http.ResponseWriter, r *http.Request) {
 
 func (h *PollHandler) DeletePoll(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
-	id, err := dataconvertion.ConvertTo32(idStr)
+	id, err := utils.ConvertTo32(idStr)
 	if err != nil {
 		RespondWithError(w, http.StatusBadRequest, "Id de poll invalido")
 		return
@@ -83,7 +55,7 @@ func (h *PollHandler) DeletePoll(w http.ResponseWriter, r *http.Request) {
 
 func (h *PollHandler) GetPoll(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
-	id, err := dataconvertion.ConvertTo32(idStr)
+	id, err := utils.ConvertTo32(idStr)
 	if err != nil {
 		RespondWithError(w, http.StatusBadRequest, "Id de encuesta invalido")
 		return
@@ -105,7 +77,7 @@ func (h *PollHandler) GetPoll(w http.ResponseWriter, r *http.Request) {
 
 // modificado para traer las opciones junto con la encuesta
 func (h *PollHandler) GetPolls(w http.ResponseWriter, r *http.Request) {
-	polls, err := h.service.GetPollsWithOptions(r.Context())
+	polls, err := h.service.GetPolls(r.Context())
 	if err != nil {
 		log.Printf("Error getting polls: %v", err) // Agregar log
 		RespondWithError(w, http.StatusInternalServerError, "No se pudieron obtener las encuestas")
@@ -118,57 +90,56 @@ func (h *PollHandler) GetPolls(w http.ResponseWriter, r *http.Request) {
 
 func (h *PollHandler) UpdateOption(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
-	id, err := dataconvertion.ConvertTo32(idStr)
+	id, err := utils.ConvertTo32(idStr)
 	if err != nil {
 		log.Printf("Error converting option ID: %v", err)
 		RespondWithError(w, http.StatusBadRequest, "Id de opción inválido")
 		return
 	}
 
-	var body struct {
-		Correct bool `json:"correct"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+	var req services.OptionResponse
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		log.Printf("Error decoding JSON: %v", err)
 		RespondWithError(w, http.StatusBadRequest, "JSON inválido")
 		return
 	}
 
-	log.Printf("Updating option %d with correct=%v", id, body.Correct)
+	log.Printf("Updating option %d with content=%v", id, req.Content)
 
-	// Traigo la opción actual para obtener el poll_id
-	opt, err := h.service.Queries.GetOptionByID(r.Context(), id)
-	if err != nil {
-		log.Printf("Error getting option by ID: %v", err)
-		RespondWithError(w, http.StatusNotFound, "Opción no encontrada")
-		return
-	}
-
-	// Si estamos marcando como correcto, primero desmarcamos todas las otras opciones de la misma encuesta
-	if body.Correct {
-		err = h.service.Queries.UnsetOtherOptionsCorrect(r.Context(), db.UnsetOtherOptionsCorrectParams{
-			PollID: opt.PollID,
-			ID:     id,
-		})
-		if err != nil {
-			log.Printf("Error unsetting other options: %v", err)
-			RespondWithError(w, http.StatusInternalServerError, "Error al actualizar otras opciones")
-			return
-		}
-	}
-
-	// Actualizo la opción específica
-	err = h.service.Queries.UpdateOption(r.Context(), db.UpdateOptionParams{
-		ID:      id,
-		Content: opt.Content,
-		Correct: sql.NullBool{Bool: body.Correct, Valid: true},
-	})
+	data, err := h.service.UpdateOption(r.Context(), req)
 	if err != nil {
 		log.Printf("Error updating option: %v", err)
 		RespondWithError(w, http.StatusInternalServerError, "Error al actualizar opción")
 		return
 	}
 
-	log.Printf("Option %d updated successfully to correct=%v", id, body.Correct)
-	RespondWithData(w, http.StatusOK, nil, "Opción actualizada correctamente")
+	log.Printf("Option %d updated successfully to content=%v", id, req.Content)
+	RespondWithData(w, http.StatusOK, data, "Opción actualizada correctamente")
+}
+
+func (h *PollHandler) DeleteOption(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+	poll_idStr := r.PathValue("poll_id")
+	id, err := utils.ConvertTo32(idStr)
+	if err != nil {
+		log.Printf("Error converting option ID: %v", err)
+		RespondWithError(w, http.StatusBadRequest, "Id de opción inválido")
+		return
+	}
+	poll_id, err := utils.ConvertTo32(poll_idStr)
+	if err != nil {
+		log.Printf("Error converting poll ID: %v", err)
+		RespondWithError(w, http.StatusBadRequest, "Id de encuesta inválido")
+		return
+	}
+
+	err = h.service.DeleteOption(r.Context(), id, poll_id)
+	if err != nil {
+		log.Printf("Error deleting option: %v", err)
+		RespondWithError(w, http.StatusInternalServerError, "Error al eliminar opción")
+		return
+	}
+
+	log.Printf("Option %d deleted successfully", id)
+	RespondWithData(w, http.StatusOK, nil, "Opción eliminada correctamente")
 }

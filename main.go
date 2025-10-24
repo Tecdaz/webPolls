@@ -35,6 +35,7 @@ func main() {
 	mux.HandleFunc("GET /users/{id}", userHandler.GetUser)
 	mux.HandleFunc("DELETE /users/{id}", userHandler.DeleteUser)
 	mux.HandleFunc("PUT /users/{id}", userHandler.UpdateUser)
+	mux.HandleFunc("GET /users", userHandler.GetUsers)
 
 	// Rutas de encuestas
 	mux.HandleFunc("POST /polls/create", pollHandler.CreatePoll)
@@ -42,6 +43,7 @@ func main() {
 	mux.HandleFunc("DELETE /polls/{id}", pollHandler.DeletePoll)
 	mux.HandleFunc("GET /polls", pollHandler.GetPolls)
 	mux.HandleFunc("PUT /options/{id}", pollHandler.UpdateOption)
+	mux.HandleFunc("DELETE /polls/{poll_id}/options/{id}", pollHandler.DeleteOption)
 
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 

@@ -22,9 +22,9 @@ Content-Type: application/json
 {
   "question": "¿Cuál es tu lenguaje favorito?",
   "options": [
-    { "content": "Go", "correct": false },
-    { "content": "Python", "correct": true },
-    { "content": "Rust", "correct": false }
+    { "content": "Go" },
+    { "content": "Python" },
+    { "content": "Rust" }
   ],
   "user_id": {{new_user_id}}
 }
@@ -36,7 +36,8 @@ new_poll_id: jsonpath "$.data.id"
 jsonpath "$.message" == "Encuesta creada correctamente"
 jsonpath "$.data.title" == "¿Cuál es tu lenguaje favorito?"
 jsonpath "$.data.options[0].content" == "Go"
-jsonpath "$.data.options[1].correct" == true
+jsonpath "$.data.options[1].content" == "Python"
+jsonpath "$.data.options[2].content" == "Rust"
 jsonpath "$.data.user_id" == {{new_user_id}}
 
 # 2. Obtener la encuesta recién creada
@@ -50,7 +51,8 @@ jsonpath "$.message" == "Encuesta obtenida correctamente"
 jsonpath "$.data.id" == {{new_poll_id}}
 jsonpath "$.data.title" == "¿Cuál es tu lenguaje favorito?"
 jsonpath "$.data.options[0].content" == "Go"
-jsonpath "$.data.options[1].correct" == true
+jsonpath "$.data.options[1].content" == "Python"
+jsonpath "$.data.options[2].content" == "Rust"
 jsonpath "$.data.user_id" == {{new_user_id}}
 
 # 3. Eliminar la encuesta

@@ -7,7 +7,6 @@ package db
 
 import (
 	"context"
-	"database/sql"
 )
 
 const createPoll = `-- name: CreatePoll :one
@@ -44,20 +43,18 @@ SELECT
     p.title,
     p.user_id,
     o.id AS option_id,
-    o.content,
-    o.correct
+    o.content AS option_content
 FROM polls p
-LEFT JOIN options o ON p.id = o.poll_id
+inner JOIN options o ON p.id = o.poll_id
 ORDER BY p.id ASC
 `
 
 type GetAllPollsRow struct {
-	PollID   int32          `json:"poll_id"`
-	Title    string         `json:"title"`
-	UserID   int32          `json:"user_id"`
-	OptionID sql.NullInt32  `json:"option_id"`
-	Content  sql.NullString `json:"content"`
-	Correct  sql.NullBool   `json:"correct"`
+	PollID        int32  `json:"poll_id"`
+	Title         string `json:"title"`
+	UserID        int32  `json:"user_id"`
+	OptionID      int32  `json:"option_id"`
+	OptionContent string `json:"option_content"`
 }
 
 func (q *Queries) GetAllPolls(ctx context.Context) ([]GetAllPollsRow, error) {
@@ -74,8 +71,7 @@ func (q *Queries) GetAllPolls(ctx context.Context) ([]GetAllPollsRow, error) {
 			&i.Title,
 			&i.UserID,
 			&i.OptionID,
-			&i.Content,
-			&i.Correct,
+			&i.OptionContent,
 		); err != nil {
 			return nil, err
 		}
@@ -90,17 +86,54 @@ func (q *Queries) GetAllPolls(ctx context.Context) ([]GetAllPollsRow, error) {
 	return items, nil
 }
 
-const getPollByID = `-- name: GetPollByID :one
-SELECT id, title, user_id
+const getPollByID = `-- name: GetPollByID :many
+SELECT 
+    polls.id,
+    polls.title,
+    polls.user_id,
+    options.id AS option_id,
+    options.content AS option_content
 FROM polls
-WHERE id = $1
+inner JOIN options ON polls.id = options.poll_id
+WHERE polls.id = $1
+ORDER BY polls.id ASC
 `
 
-func (q *Queries) GetPollByID(ctx context.Context, id int32) (Poll, error) {
-	row := q.db.QueryRowContext(ctx, getPollByID, id)
-	var i Poll
-	err := row.Scan(&i.ID, &i.Title, &i.UserID)
-	return i, err
+type GetPollByIDRow struct {
+	ID            int32  `json:"id"`
+	Title         string `json:"title"`
+	UserID        int32  `json:"user_id"`
+	OptionID      int32  `json:"option_id"`
+	OptionContent string `json:"option_content"`
+}
+
+func (q *Queries) GetPollByID(ctx context.Context, id int32) ([]GetPollByIDRow, error) {
+	rows, err := q.db.QueryContext(ctx, getPollByID, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPollByIDRow
+	for rows.Next() {
+		var i GetPollByIDRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.UserID,
+			&i.OptionID,
+			&i.OptionContent,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const updatePoll = `-- name: UpdatePoll :exec

@@ -4,11 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	sqlc "webpolls/db/sqlc"
+	db "webpolls/db/sqlc"
 )
 
 type UserService struct {
-	queries *sqlc.Queries
+	Queries *db.Queries
 }
 
 type UserResponse struct {
@@ -17,25 +17,27 @@ type UserResponse struct {
 	Email    string `json:"email"`
 }
 
-func NewUserService(queries *sqlc.Queries) *UserService {
-	return &UserService{queries: queries}
+type UserRequest = db.CreateUserParams
+
+func NewUserService(queries *db.Queries) *UserService {
+	return &UserService{Queries: queries}
 }
-func (s *UserService) CreateUser(ctx context.Context, params sqlc.CreateUserParams) (*UserResponse, error) {
+func (s *UserService) CreateUser(ctx context.Context, params UserRequest) (*UserResponse, error) {
 	if params.Username == "" || params.Email == "" || params.Password == "" {
 		return nil, errors.New("Todos los campos son obligatorios")
 	}
 
-	_, err := s.queries.GetUserByUsername(ctx, params.Username)
+	_, err := s.Queries.GetUserByUsername(ctx, params.Username)
 	if err == nil {
 		return nil, errors.New("El nombre de usuario ya existe")
 	}
 
-	_, err = s.queries.GetUserByEmail(ctx, params.Email)
+	_, err = s.Queries.GetUserByEmail(ctx, params.Email)
 	if err == nil {
 		return nil, errors.New("El email ya existe")
 	}
 
-	createdRow, err := s.queries.CreateUser(ctx, params)
+	createdRow, err := s.Queries.CreateUser(ctx, params)
 	if err != nil {
 		return nil, err
 	}
@@ -49,49 +51,48 @@ func (s *UserService) CreateUser(ctx context.Context, params sqlc.CreateUserPara
 }
 
 func (s *UserService) GetUserByID(ctx context.Context, id int32) (*UserResponse, error) {
-	userRow, err := s.queries.GetUserByID(ctx, id)
+	userRow, err := s.Queries.GetUserByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	user := &UserResponse{
+	return &UserResponse{
 		Id:       userRow.ID,
 		Username: userRow.Username,
 		Email:    userRow.Email,
-	}
-	return user, nil
+	}, nil
 }
 
 func (s *UserService) DeleteUser(ctx context.Context, id int32) (string, error) {
-	return s.queries.DeleteUser(ctx, id)
+	return s.Queries.DeleteUser(ctx, id)
 }
 
-type UpdateUserParams struct {
-	Username *string
-	Email    *string
-	Password *string
+type UpdateUserRequest struct {
+	Username *string `json:"username"`
+	Email    *string `json:"email"`
+	Password *string `json:"password"`
 }
 
-func (s *UserService) UpdateUser(ctx context.Context, id int32, params UpdateUserParams) (*UserResponse, error) {
-	_, err := s.GetUserByID(ctx, id)
+func (s *UserService) UpdateUser(ctx context.Context, id int32, params UpdateUserRequest) (*UserResponse, error) {
+	actualUser, err := s.GetUserByID(ctx, id)
 	if err != nil {
-		return nil, errors.New("Usuario no encontrado")
+		return nil, errors.New("usuario no encontrado")
 	}
 
 	var username, email, password sql.NullString
 
-	if params.Username != nil {
-		userByUsername, err := s.queries.GetUserByUsername(ctx, *params.Username)
+	if params.Username != nil && *params.Username != actualUser.Username {
+		userByUsername, err := s.Queries.GetUserByUsername(ctx, *params.Username)
 		if err == nil && userByUsername.ID != id {
-			return nil, errors.New("El nombre de usuario ya existe")
+			return nil, errors.New("el nombre de usuario ya existe")
 		}
 		username = sql.NullString{String: *params.Username, Valid: true}
 	}
 
-	if params.Email != nil {
-		userByEmail, err := s.queries.GetUserByEmail(ctx, *params.Email)
+	if params.Email != nil && *params.Email != actualUser.Email {
+		userByEmail, err := s.Queries.GetUserByEmail(ctx, *params.Email)
 		if err == nil && userByEmail.ID != id {
-			return nil, errors.New("El email ya existe")
+			return nil, errors.New("el email ya existe")
 		}
 		email = sql.NullString{String: *params.Email, Valid: true}
 	}
@@ -100,7 +101,7 @@ func (s *UserService) UpdateUser(ctx context.Context, id int32, params UpdateUse
 		password = sql.NullString{String: *params.Password, Valid: true}
 	}
 
-	updatedRow, err := s.queries.UpdateUser(ctx, sqlc.UpdateUserParams{
+	updatedRow, err := s.Queries.UpdateUser(ctx, db.UpdateUserParams{
 		ID:       id,
 		Username: username,
 		Email:    email,
@@ -110,10 +111,27 @@ func (s *UserService) UpdateUser(ctx context.Context, id int32, params UpdateUse
 		return nil, err
 	}
 
-	user := &UserResponse{
+	return &UserResponse{
 		Id:       updatedRow.ID,
 		Username: updatedRow.Username,
 		Email:    updatedRow.Email,
+	}, nil
+}
+
+func (s *UserService) GetUsers(ctx context.Context) ([]UserResponse, error) {
+	users, err := s.Queries.GetAllUsers(ctx)
+	if err != nil {
+		return nil, err
 	}
-	return user, nil
+
+	var userResponses []UserResponse
+	for _, user := range users {
+		userResponses = append(userResponses, UserResponse{
+			Id:       user.ID,
+			Username: user.Username,
+			Email:    user.Email,
+		})
+	}
+
+	return userResponses, nil
 }
