@@ -21,7 +21,7 @@ func main() {
 
 	// Inicializar servicios
 	userService := services.NewUserService(queries)
-	pollService := services.NewPollService(queries)
+	pollService := services.NewPollService(queries, dbConn)
 
 	// Inicializar handlers con los servicios
 	userHandler := handlers.NewUserHandler(userService)

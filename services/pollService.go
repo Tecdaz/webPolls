@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"log"
 	db "webpolls/db/sqlc"
@@ -10,11 +11,12 @@ import (
 // PollService encapsula la lógica de negocio para las encuestas.
 type PollService struct {
 	Queries *db.Queries // <-- Exportado (con mayúscula)
+	DB      *sql.DB
 }
 
 // NewPollService crea una nueva instancia de PollService.
-func NewPollService(queries *db.Queries) *PollService {
-	return &PollService{Queries: queries} // <-- actualizado
+func NewPollService(queries *db.Queries, db *sql.DB) *PollService {
+	return &PollService{Queries: queries, DB: db} // <-- actualizado
 }
 
 type OptionResponse = db.Option
@@ -47,8 +49,16 @@ func (s *PollService) CreatePoll(ctx context.Context, params PollRequest) (*Poll
 		return nil, errors.New("deben ser máximo 4 opciones")
 	}
 
+	tx, err := s.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	qtx := s.Queries.WithTx(tx)
+
 	log.Println(params)
-	poll, err := s.Queries.CreatePoll(ctx, db.CreatePollParams{
+	poll, err := qtx.CreatePoll(ctx, db.CreatePollParams{
 		Title:  params.Question,
 		UserID: params.UserID,
 	})
@@ -59,7 +69,7 @@ func (s *PollService) CreatePoll(ctx context.Context, params PollRequest) (*Poll
 	// Crear opciones asociadas
 	var options []db.Option
 	for _, optionContent := range params.Options {
-		option, err := s.Queries.CreateOption(ctx, db.CreateOptionParams{
+		option, err := qtx.CreateOption(ctx, db.CreateOptionParams{
 			Content: optionContent.Content,
 			PollID:  poll.ID,
 		})
@@ -67,6 +77,10 @@ func (s *PollService) CreatePoll(ctx context.Context, params PollRequest) (*Poll
 			return nil, err
 		}
 		options = append(options, option)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, err
 	}
 
 	data := &PollResponse{
