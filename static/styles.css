@@ -25,21 +25,17 @@ body {
     color: var(--text);
     line-height: 1.6;
     min-height: 100vh;
-    padding-top: 80px;
+    max-height: 100vh;
 }
 
 /* Header fijo */
 header {
-    position: fixed;
-    top: 0;
-    left: 0;
     width: 100%;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
     box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
     z-index: 1000;
     height: 80px;
-    border-bottom: 2px solid rgba(99, 102, 241, 0.2);
 }
 
 nav {
@@ -94,14 +90,23 @@ nav {
 /*grid*/
 
 .main {
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* formulario y lista lado a lado */
-    gap: 2rem;
-    justify-content: center;
-    align-items: start;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: stretch;
     padding: 2rem;
     max-width: 1200px;
     margin: 0 auto;
+    height: calc(100vh - 80px);
+}
+
+.gridLayout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    height: 100%;
+    max-height: 100%;
+    overflow: hidden;
 }
 
 .h1UnderHeader {
@@ -128,7 +133,7 @@ nav {
     width: 100%;
 }
 
-.createPollDiv h1 {
+.createPollDiv h2 {
     color: var(--primary);
     margin-bottom: 1.5rem;
     font-size: 1.75rem;
@@ -139,6 +144,7 @@ nav {
     display: flex;
     flex-direction: column;
     width: 100%;
+    flex-grow: 1;
 }
 
 .createPollDiv form label {
@@ -185,109 +191,42 @@ nav {
     box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4);
 }
 
-#addOptBtn {
-    background: linear-gradient(135deg, var(--secondary), #FBBF24);
-    width: auto;
-    padding: 0 2rem;
-    align-self: flex-start;
-}
-
-#addOptBtn:hover {
-    box-shadow: 0 5px 15px rgba(245, 158, 11, 0.4);
-}
 
 /* OPCIONES DE ENCUESTA */
 #optsContainer {
-    width: 100%;
-}
-
-.opt {
-    margin: 1rem 0;
-    padding: 1.5rem;
-    border: 2px solid var(--border);
-    border-radius: 12px;
-    background-color: var(--background);
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    flex-wrap: wrap; /* permite que los elementos bajen si no entran */
-    transition: all 0.3s ease;
-}
-
-.opt:hover {
-    border-color: var(--primary-light);
-    transform: translateX(5px);
-}
-
-.opt label {
-    color: var(--primary);
-    font-weight: 600;
-    min-width: 80px;
-}
-
-.opt input {
-    flex: 1 1 auto; /* corrige espacio reducido */
-    min-width: 200px; /* evita que se achique demasiado */
-    margin-bottom: 0 !important;
-    padding: 1rem;
-    font-size: 1rem;
-    border: 2px solid var(--border);
-    border-radius: 8px;
-    background: white;
-    color: var(--text);
-    transition: all 0.3s ease;
-}
-
-.opt input:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-}
-
-.deleteOptBtn {
-    background-color: transparent;
-    color: var(--error);
-    border: 2px solid var(--error);
-    padding: 0.75rem 1.25rem;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-weight: 600;
-    flex-shrink: 0; /* no se achica */
-    border: 6px dotted rgb(111 0 0);
-}
-
-.deleteOptBtn:hover {
-    background-color: var(--error);
-    color: white;
-    transform: scale(1.05);
-    border: 2px dotted rgb(111 0 0);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 8px;
 }
 
 /* VISTA DE ENCUESTAS*/
 .pollsSection {
     background: var(--surface);
-    border: none;
     border-radius: 16px;
     padding: 2.5rem;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
     width: 100%;
-    border: 2px dotted rgb(96 139 168);
+    height: 100%;
+    overflow-y: auto;
 }
 
-#pollsContainer {
+.pollsSection h2 {
+    margin-bottom: 1.5rem;
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+.pollsContainer {
     width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 2rem;
-    border: 2px dotted rgb(96 139 168);
+
 }
 
 .singlePollDiv {
     background: var(--surface);
-    border: 2px solid var(--border);
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -298,21 +237,10 @@ nav {
     padding: 2rem;
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    position: relative;
-    overflow: hidden;
     animation: slideIn 0.4s ease-out;
-    border: 2px dotted rgb(96 139 168);
+    border: 1px solid var(--border);
 }
 
-.singlePollDiv::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 4px;
-    background: linear-gradient(135deg, var(--primary), var(--accent));
-}
 
 .singlePollDiv:hover {
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);

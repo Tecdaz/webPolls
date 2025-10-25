@@ -29,7 +29,7 @@ func Navigator() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<nav><ul><li><a href=\"/\">Inicio</a></li><li><a href=\"/users\">Usuarios</a></li><li><a href=\"/polls\">Polls</a></li></ul></nav>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<header><nav><div class=\"nav-container\"><a href=\"/\" class=\"logo\"><img src=\"/static/logo.svg\" alt=\"WebPolls Logo\"></a><div class=\"desktop-menu\"><a href=\"/\">Inicio</a> <a href=\"/users\">Usuarios</a> <a href=\"/polls\">Polls</a></div></div></nav></header>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -48,7 +48,7 @@ func (h *userHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if contentType == "application/json" {
-		RespondWithData(w, http.StatusCreated, user, "Usuario Creado correctamente")
+		RespondWithData(w, http.StatusCreated, user, "Usuario creado correctamente")
 		return
 	}
 

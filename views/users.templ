@@ -2,55 +2,51 @@ package views
 
 import "webpolls/services"
 
-templ Users(users []services.UserResponse){
-    <div>
-        <h1>Gestion de usuarios</h1>
-        <div>
-            @UserForm()
-            <div>
-                <h2>Lista de usuarios</h2>
-                @UserList(users)
-            </div>
+templ Users(users []services.UserResponse) {
+    <h1 class="h1UnderHeader">Gestion de usuarios</h1>
+    <div class="gridLayout">
+        @UserForm()
+        <div class="pollsSection">
+            <h2>Lista de usuarios</h2>
+            if len(users) == 0 {
+                <p>No hay usuarios</p>
+            }
+            @UserList(users)
         </div>
     </div>
+
 }
 
-templ UserForm(){
-    <div class="grid-element">
-      <h2>Crear usuario</h2>
-      <form
-        hx-post="/users/create"
-        hx-on:reset-form="this.reset()"
-        hx-target="#users-list"
-        hx-swap="outerHTML"
-      >
-        @FormField("email", "email", "user@gmail.com", "Email")
-        @FormField("text", "username", "user123", "Username")
-        @FormField("password", "password", "Contraseña", "Contraseña")
-        <button type="submit">Crear Usuario</button>
-      </form>
-    </div>
+templ UserForm() {
+	<div class="createPollDiv">
+		<h2>Crear usuario</h2>
+		<form hx-post="/users/create" hx-on:reset-form="this.reset()" hx-target="#users-list" hx-swap="outerHTML">
+			@FormField("email", "email", "user@gmail.com", "Email")
+			@FormField("text", "username", "user123", "Username")
+			@FormField("password", "password", "Contraseña", "Contraseña")
+			<button type="submit">Crear Usuario</button>
+		</form>
+	</div>
 }
 
-templ FormField(typee, name, placeholder, content string){
-    <div>
-      <label for={ name }>{ content }</label>
-      <input type={ typee } name={ name } placeholder={ placeholder }>
-    </div>
+templ FormField(typee, name, placeholder, content string) {
+	<div>
+		<label for={ name }>{ content }</label>
+		<input type={ typee } name={ name } placeholder={ placeholder }/>
+	</div>
 }
 
-templ UserList(users []services.UserResponse){
-    <div id="users-list">
-        for _, user := range users{
-            @UserCard(user)
-        }
-    </div>
+templ UserList(users []services.UserResponse) {
+	<div id="users-list" class="pollsContainer">
+		for _, user := range users {
+			@UserCard(user)
+		}
+	</div>
 }
 
-templ UserCard(user services.UserResponse){
-    <div>
-        <p>{ user.Id }</p>
-        <p>{ user.Username }</p>
-        <p>{ user.Email }</p>
-    </div>
+templ UserCard(user services.UserResponse) {
+	<div class="singlePollDiv">
+		<h3>{ user.Username }</h3>
+		<p>{ user.Email }</p>
+	</div>
 }

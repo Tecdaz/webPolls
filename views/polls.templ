@@ -2,56 +2,53 @@ package views
 
 import "webpolls/services"
 
-templ Polls(polls []*services.PollResponse){
-    <div>
-        <h1>Gestion de polls</h1>
-        <div>
-            @PollForm()
-            <div id="polls-list">
-                <h2>Lista de polls</h2>
+templ Polls(polls []*services.PollResponse) {
+		<h1 class="h1UnderHeader">Gestion de Encuestas</h1>
+		<div class="gridLayout">
+		    @PollForm()
+            <div class="pollsSection">
+                <h2>Lista de Encuestas</h2>
+                if len(polls) == 0{
+                    <p>No hay Encuestas</p>
+                }
                 @PollList(polls)
             </div>
-        </div>
-    </div>
+		</div>
+
 }
 
-templ PollForm(){
-    <div class="grid-element">
-      <h2>Crear poll</h2>
-      <form
-        hx-post="/polls/create"
-        hx-on:reset-form="this.reset()"
-        hx-target="#polls-list"
-        hx-swap="outerHTML"
-      >
-        @FormField("text", "question", "¿Cual es tu deporte favorito?", "Pregunta")
-        @FormField("number", "user-id", "Id del usuario", "Id del usuario")
-        @FormField("text", "option1", "Futbol", "Opcion 1")
-        @FormField("text", "option2", "Tennis", "Opcion 2")
-        @FormField("text", "option3", "Golf", "Opcion 3")
-        @FormField("text", "option4", "Boxeo", "Opcion 4")
-        <button type="submit">Crear Poll</button>
-      </form>
-    </div>
+templ PollForm() {
+	<div class="createPollDiv">
+		<h2>Crear Encuesta</h2>
+		<form hx-post="/polls/create" hx-on:reset-form="this.reset()" hx-target="#polls-list" hx-swap="outerHTML">
+			@FormField("text", "question", "¿Cual es tu deporte favorito?", "Pregunta")
+			@FormField("number", "user-id", "Id del usuario", "Id del usuario")
+			<div id="optsContainer">
+				@FormField("text", "option1", "Futbol", "Opcion 1")
+				@FormField("text", "option2", "Tennis", "Opcion 2")
+				@FormField("text", "option3", "Golf", "Opcion 3")
+				@FormField("text", "option4", "Boxeo", "Opcion 4")
+			</div>
+			<button type="submit">Crear Encuesta</button>
+		</form>
+	</div>
 }
 
-templ PollList(polls []*services.PollResponse){
-    <div id="polls-list">
-        for _, poll := range polls{
-            @PollCard(poll)
-        }
-    </div>
+templ PollList(polls []*services.PollResponse) {
+	<div id="polls-list" class="pollsContainer">
+		for _, poll := range polls {
+			@PollCard(poll)
+		}
+	</div>
 }
 
-templ PollCard(poll *services.PollResponse){
-    <div>
-        <p>{ poll.ID }</p>
-        <p>{ poll.Title }</p>
-        <p>{ poll.UserID }</p>
-        <div>
-            for _, option := range poll.Options{
-                <p>{ option.Content }</p>
-            }
-        </div>
-    </div>
+templ PollCard(poll *services.PollResponse) {
+	<div class="singlePollDiv">
+		<h3>{ poll.Title }</h3>
+		<ul>
+			for _, option := range poll.Options {
+				<li>{ option.Content }</li>
+			}
+		</ul>
+	</div>
 }
