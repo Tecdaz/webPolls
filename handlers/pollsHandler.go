@@ -88,6 +88,22 @@ func (h *PollHandler) DeletePoll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//WEB
+	if r.Header.Get("HX-Request") == "true" {
+		polls, err := h.service.GetPolls(r.Context())
+		if err != nil {
+			RespondWithError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		err = views.PollList(polls).Render(r.Context(), w)
+		if err != nil {
+			RespondWithError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		return
+	}
+
+	//API
 	RespondWithData(w, http.StatusOK, nil, "Encuesta eliminada correctamente")
 }
 

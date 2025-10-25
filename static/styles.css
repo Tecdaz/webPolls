@@ -9,7 +9,7 @@
     --text-light: #64748B;
     --border: #E2E8F0;
     --success: #10B981;
-    --error: #EF4444;
+    --error: #EC130F;
     --accent: #EC4899;
 }
 
@@ -279,13 +279,13 @@ nav {
     border-radius: 8px;
 }
 
-.singlePollDiv button {
+.deleteBtn {
     width: 100%;
     max-width: 200px;
     height: 45px;
     background: transparent;
-    color: var(--text);
-    border: 2px solid var(--border);
+    color: var(--error);
+    border: 2px solid var(--error);
     border-radius: 10px;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -293,10 +293,10 @@ nav {
     margin: 0.5rem 0;
 }
 
-.singlePollDiv button:hover {
-    border-color: var(--primary);
-    color: var(--primary);
-    transform: translateY(-2px);
+.deleteBtn:hover {
+    border: none;
+    color: white;
+    background: var(--error);
 }
 
 /* BOTONES DE SELECCION*/
@@ -319,22 +319,6 @@ nav {
     background: gray;
     border-radius: 80px;
 }
-
-/*boton para eliminar encuesta*/
-.deleteBtn {
-    background: transparent;
-    color: var(--error);
-    border: 2px solid var(--error);
-    transition: all 0.3s ease;
-}
-
-.deleteBtn:hover {
-    background: var(--error);
-    color: white;
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-}
-
-
 
 /* MENSAJES FEEDBACK*/
 .message {

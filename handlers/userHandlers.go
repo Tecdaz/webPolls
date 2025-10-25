@@ -79,6 +79,22 @@ func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//WEB
+	if r.Header.Get("HX-Request") == "true" {
+		users, err := h.service.GetUsers(r.Context())
+		if err != nil {
+			RespondWithError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		err = views.UserList(users).Render(r.Context(), w)
+		if err != nil {
+			RespondWithError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		return
+	}
+
+	//API
 	RespondWithData(w, http.StatusOK, map[string]string{"username": deletedUsername}, "Usuario eliminado correctamente")
 }
 

@@ -1,6 +1,7 @@
 package views
 
 import "webpolls/services"
+import "fmt"
 
 templ Polls(polls []*services.PollResponse) {
 		<h1 class="h1UnderHeader">Gestion de Encuestas</h1>
@@ -51,5 +52,8 @@ templ PollCard(poll *services.PollResponse) {
 				<li>{ option.Content }</li>
 			}
 		</ul>
+		<button class="deleteBtn" hx-delete={ fmt.Sprintf("/polls/%d", poll.ID) } hx-target="#polls-list" hx-swap="outerHTML">
+			Eliminar
+		</button>
 	</div>
 }

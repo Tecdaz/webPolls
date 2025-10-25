@@ -1,6 +1,7 @@
 package views
 
 import "webpolls/services"
+import "fmt"
 
 templ Users(users []services.UserResponse) {
     <h1 class="h1UnderHeader">Gestion de usuarios</h1>
@@ -29,7 +30,7 @@ templ UserForm() {
 templ FormField(typee, name, placeholder, content string) {
 	<div>
 		<label for={ name }>{ content }</label>
-		<input type={ typee } name={ name } placeholder={ placeholder }/>
+		<input type={ typee } name={ name } id={ name } placeholder={ placeholder }/>
 	</div>
 }
 
@@ -49,5 +50,8 @@ templ UserCard(user services.UserResponse) {
 	<div class="singlePollDiv">
 		<h3>{ user.Username }</h3>
 		<p>{ user.Email }</p>
+		<button class="deleteBtn" hx-delete={ fmt.Sprintf("/users/%d", user.Id) } hx-target="#users-list" hx-swap="outerHTML">
+            Eliminar
+        </button>
 	</div>
 }
