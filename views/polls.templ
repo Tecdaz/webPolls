@@ -8,9 +8,6 @@ templ Polls(polls []*services.PollResponse) {
 		    @PollForm()
             <div class="pollsSection">
                 <h2>Lista de Encuestas</h2>
-                if len(polls) == 0{
-                    <p>No hay Encuestas</p>
-                }
                 @PollList(polls)
             </div>
 		</div>
@@ -35,7 +32,11 @@ templ PollForm() {
 }
 
 templ PollList(polls []*services.PollResponse) {
+
 	<div id="polls-list" class="pollsContainer">
+	    if len(polls) == 0{
+                <p>No hay Encuestas</p>
+            }
 		for _, poll := range polls {
 			@PollCard(poll)
 		}

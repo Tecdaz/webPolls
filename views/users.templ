@@ -8,9 +8,6 @@ templ Users(users []services.UserResponse) {
         @UserForm()
         <div class="pollsSection">
             <h2>Lista de usuarios</h2>
-            if len(users) == 0 {
-                <p>No hay usuarios</p>
-            }
             @UserList(users)
         </div>
     </div>
@@ -37,7 +34,11 @@ templ FormField(typee, name, placeholder, content string) {
 }
 
 templ UserList(users []services.UserResponse) {
+
 	<div id="users-list" class="pollsContainer">
+        if len(users) == 0 {
+                <p>No hay usuarios</p>
+            }
 		for _, user := range users {
 			@UserCard(user)
 		}
