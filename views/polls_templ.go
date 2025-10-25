@@ -81,11 +81,11 @@ func PollForm() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = FormField("text", "question", "¿Cual es tu deporte favorito?", "Pregunta").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = FormField("text", "question", "question", "¿Cual es tu deporte favorito?", "Pregunta").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = FormField("number", "user-id", "Id del usuario", "Id del usuario").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = FormField("number", "user-id", "user-id", "Id del usuario", "Id del usuario").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -93,21 +93,11 @@ func PollForm() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = FormField("text", "option1", "Futbol", "Opcion 1").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = FormField("text", "option2", "Tennis", "Opcion 2").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = FormField("text", "option3", "Golf", "Opcion 3").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = FormField("text", "option4", "Boxeo", "Opcion 4").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
+		for i := 1; i <= 4; i++ {
+			templ_7745c5c3_Err = FormField("text", "options", fmt.Sprintf("option%d", i), fmt.Sprintf("Opción %d", i), fmt.Sprintf("Opción %d", i)).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 		}
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</div><button type=\"submit\">Crear Encuesta</button></form></div>")
 		if templ_7745c5c3_Err != nil {
@@ -190,7 +180,7 @@ func PollCard(poll *services.PollResponse) templ.Component {
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(poll.Title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/polls.templ`, Line: 49, Col: 18}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/polls.templ`, Line: 48, Col: 18}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -208,7 +198,7 @@ func PollCard(poll *services.PollResponse) templ.Component {
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(option.Content)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/polls.templ`, Line: 52, Col: 24}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/polls.templ`, Line: 51, Col: 24}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -226,7 +216,7 @@ func PollCard(poll *services.PollResponse) templ.Component {
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/polls/%d", poll.ID))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/polls.templ`, Line: 55, Col: 73}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/polls.templ`, Line: 54, Col: 73}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {

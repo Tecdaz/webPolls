@@ -19,18 +19,18 @@ templ UserForm() {
 	<div class="createPollDiv">
 		<h2>Crear usuario</h2>
 		<form hx-post="/users/create" hx-on:reset-form="this.reset()" hx-target="#users-list" hx-swap="outerHTML">
-			@FormField("email", "email", "user@gmail.com", "Email")
-			@FormField("text", "username", "user123", "Username")
-			@FormField("password", "password", "Contraseña", "Contraseña")
+			@FormField("email", "email", "email", "user@gmail.com", "Email")
+			@FormField("text", "username", "username", "user123", "Username")
+			@FormField("password", "password", "password", "Contraseña", "Contraseña")
 			<button type="submit">Crear Usuario</button>
 		</form>
 	</div>
 }
 
-templ FormField(typee, name, placeholder, content string) {
+templ FormField(typee, name, id, placeholder, content string) {
 	<div>
-		<label for={ name }>{ content }</label>
-		<input type={ typee } name={ name } id={ name } placeholder={ placeholder }/>
+		<label for={ id }>{ content }</label>
+		<input type={ typee } name={ name } id={ id } placeholder={ placeholder }/>
 	</div>
 }
 

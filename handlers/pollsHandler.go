@@ -35,10 +35,10 @@ func (h *PollHandler) CreatePoll(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		var options []services.OptionRequest
-		options = append(options, services.OptionRequest{r.FormValue("option1")})
-		options = append(options, services.OptionRequest{r.FormValue("option2")})
-		options = append(options, services.OptionRequest{r.FormValue("option3")})
-		options = append(options, services.OptionRequest{r.FormValue("option4")})
+		formOptions := r.Form["options"]
+		for _, opt := range formOptions {
+			options = append(options, services.OptionRequest{Content: opt})
+		}
 		userId, err := utils.ConvertTo32(r.FormValue("user-id"))
 		if err != nil {
 			RespondWithError(w, http.StatusBadRequest, err.Error())
