@@ -125,8 +125,6 @@ func (s *PollService) GetPolls(ctx context.Context) ([]*PollResponse, error) {
 		poll.Options = append(poll.Options, OptionResponse{
 			ID:      row.OptionID,
 			Content: row.OptionContent,
-			// PollID no es necesario en OptionResponse, pero si lo fuera, lo asignaríamos aquí.
-			// PollID:  row.PollID,
 		})
 	}
 

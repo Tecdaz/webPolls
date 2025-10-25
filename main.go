@@ -26,9 +26,13 @@ func main() {
 	// Inicializar handlers con los servicios
 	userHandler := handlers.NewUserHandler(userService)
 	pollHandler := handlers.NewPollHandler(pollService)
+	homeHandler := handlers.NewHomeHandler(userService)
 
 	// Crear un nuevo mux y registrar todas las rutas
 	mux := http.NewServeMux()
+
+	// Rutas de home
+	mux.HandleFunc("GET /{$}", homeHandler.GetHome)
 
 	// Rutas de usuarios
 	mux.HandleFunc("POST /users/create", userHandler.CreateUser)
@@ -46,10 +50,6 @@ func main() {
 	mux.HandleFunc("DELETE /polls/{poll_id}/options/{id}", pollHandler.DeleteOption)
 
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
-
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "./static/index.html")
-	})
 
 	// Aplicar el middleware a todo el mux
 	loggedMux := middleware.LoggingMiddleware(mux)

@@ -7,6 +7,7 @@ import (
 
 	"webpolls/services"
 	"webpolls/utils"
+	"webpolls/views"
 )
 
 // userHandler ahora depende de UserService
@@ -21,19 +22,47 @@ func NewUserHandler(service *services.UserService) *userHandler {
 
 func (h *userHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var req services.UserRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		RespondWithError(w, http.StatusBadRequest, "Payload de creacion invalido")
-		return
+	contentType := r.Header.Get("Content-Type")
+
+	if contentType == "application/json" {
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			RespondWithError(w, http.StatusBadRequest, "Invalid JSON payload")
+			return
+		}
+	} else {
+		if err := r.ParseForm(); err != nil {
+			RespondWithError(w, http.StatusBadRequest, "Invalid form data")
+			return
+		}
+		req = services.UserRequest{
+			Email:    r.FormValue("email"),
+			Username: r.FormValue("username"),
+			Password: r.FormValue("password"),
+		}
 	}
 
-	// La lógica de negocio ahora se llama desde el servicio
 	user, err := h.service.CreateUser(r.Context(), req)
 	if err != nil {
 		RespondWithError(w, http.StatusBadRequest, err.Error()) // El servicio devuelve errores de negocio claros
 		return
 	}
 
-	RespondWithData(w, http.StatusCreated, user, "Usuario creado correctamente")
+	if contentType == "application/json" {
+		RespondWithData(w, http.StatusCreated, user, "Usuario Creado correctamente")
+		return
+	}
+
+	//Pagina web
+	users, err := h.service.GetUsers(r.Context())
+	if err != nil {
+		RespondWithError(w, http.StatusInternalServerError, "No se pudieron obtener los usuarios")
+		return
+	}
+	w.Header().Set("HX-Trigger", "reset-form")
+	err = views.UserList(users).Render(r.Context(), w)
+	if err != nil {
+		RespondWithError(w, http.StatusInternalServerError, err.Error())
+	}
 }
 
 func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
@@ -108,5 +137,27 @@ func (h *userHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	RespondWithData(w, http.StatusOK, users, "Usuarios obtenidos correctamente")
+	//API
+	acceptType := r.Header.Get("Accept")
+	if acceptType == "application/json" {
+		RespondWithData(w, http.StatusOK, users, "Usuarios obtenidos correctamente")
+		return
+	}
+
+	//WEB
+	if r.Header.Get("HX-Request") == "true" {
+		err = views.Users(users).Render(r.Context(), w)
+		if err != nil {
+			RespondWithError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		return
+	}
+
+	err = views.Index(views.Users(users), "Usuarios - Webpolls").Render(r.Context(), w)
+	if err != nil {
+		RespondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	return
 }

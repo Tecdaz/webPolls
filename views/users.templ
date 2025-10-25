@@ -1,0 +1,56 @@
+package views
+
+import "webpolls/services"
+
+templ Users(users []services.UserResponse){
+    <div>
+        <h1>Gestion de usuarios</h1>
+        <div>
+            @UserForm()
+            <div>
+                <h2>Lista de usuarios</h2>
+                @UserList(users)
+            </div>
+        </div>
+    </div>
+}
+
+templ UserForm(){
+    <div class="grid-element">
+      <h2>Crear usuario</h2>
+      <form
+        hx-post="/users/create"
+        hx-on:reset-form="this.reset()"
+        hx-target="#users-list"
+        hx-swap="outerHTML"
+      >
+        @FormField("email", "email", "user@gmail.com", "Email")
+        @FormField("text", "username", "user123", "Username")
+        @FormField("password", "password", "Contraseña", "Contraseña")
+        <button type="submit">Crear Usuario</button>
+      </form>
+    </div>
+}
+
+templ FormField(typee, name, placeholder, content string){
+    <div>
+      <label for={ name }>{ content }</label>
+      <input type={ typee } name={ name } placeholder={ placeholder }>
+    </div>
+}
+
+templ UserList(users []services.UserResponse){
+    <div id="users-list">
+        for _, user := range users{
+            @UserCard(user)
+        }
+    </div>
+}
+
+templ UserCard(user services.UserResponse){
+    <div>
+        <p>{ user.Id }</p>
+        <p>{ user.Username }</p>
+        <p>{ user.Email }</p>
+    </div>
+}

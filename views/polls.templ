@@ -1,0 +1,57 @@
+package views
+
+import "webpolls/services"
+
+templ Polls(polls []*services.PollResponse){
+    <div>
+        <h1>Gestion de polls</h1>
+        <div>
+            @PollForm()
+            <div id="polls-list">
+                <h2>Lista de polls</h2>
+                @PollList(polls)
+            </div>
+        </div>
+    </div>
+}
+
+templ PollForm(){
+    <div class="grid-element">
+      <h2>Crear poll</h2>
+      <form
+        hx-post="/polls/create"
+        hx-on:reset-form="this.reset()"
+        hx-target="#polls-list"
+        hx-swap="outerHTML"
+      >
+        @FormField("text", "question", "¿Cual es tu deporte favorito?", "Pregunta")
+        @FormField("number", "user-id", "Id del usuario", "Id del usuario")
+        @FormField("text", "option1", "Futbol", "Opcion 1")
+        @FormField("text", "option2", "Tennis", "Opcion 2")
+        @FormField("text", "option3", "Golf", "Opcion 3")
+        @FormField("text", "option4", "Boxeo", "Opcion 4")
+        <button type="submit">Crear Poll</button>
+      </form>
+    </div>
+}
+
+templ PollList(polls []*services.PollResponse){
+    <div id="polls-list">
+        for _, poll := range polls{
+            @PollCard(poll)
+        }
+    </div>
+}
+
+templ PollCard(poll *services.PollResponse){
+    <div>
+        <p>{ poll.ID }</p>
+        <p>{ poll.Title }</p>
+        <p>{ poll.UserID }</p>
+        <div>
+            for _, option := range poll.Options{
+                <p>{ option.Content }</p>
+            }
+        </div>
+    </div>
+}
