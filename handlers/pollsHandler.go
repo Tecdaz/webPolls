@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"webpolls/views"
 
 	"webpolls/services"
 	"webpolls/utils"
@@ -56,23 +55,7 @@ func (h *PollHandler) CreatePoll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if contentType == "application/json" {
-		RespondWithData(w, http.StatusCreated, data, "Encuesta creada correctamente")
-		return
-	}
-
-	polls, err := h.service.GetPolls(r.Context())
-	if err != nil {
-		RespondWithError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	w.Header().Set("HX-Trigger", "reset-form")
-	w.WriteHeader(http.StatusCreated)
-	err = views.PollList(polls).Render(r.Context(), w)
-	if err != nil {
-		RespondWithError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
+	RespondWithData(w, http.StatusCreated, data, "Encuesta creada correctamente")
 }
 
 func (h *PollHandler) DeletePoll(w http.ResponseWriter, r *http.Request) {
@@ -89,22 +72,6 @@ func (h *PollHandler) DeletePoll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//WEB
-	if r.Header.Get("HX-Request") == "true" {
-		polls, err := h.service.GetPolls(r.Context())
-		if err != nil {
-			RespondWithError(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-		err = views.PollList(polls).Render(r.Context(), w)
-		if err != nil {
-			RespondWithError(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-		return
-	}
-
-	//API
 	RespondWithData(w, http.StatusOK, nil, "Encuesta eliminada correctamente")
 }
 
@@ -139,30 +106,7 @@ func (h *PollHandler) GetPolls(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//API
-	acceptType := r.Header.Get("Accept")
-	if acceptType == "application/json" {
-		log.Printf("Polls retrieved: %+v", polls) // Agregar log para debug
-		RespondWithData(w, http.StatusOK, polls, "Encuestas obtenidas correctamente")
-		return
-	}
-
-	//WEB
-	if r.Header.Get("HX-Request") == "true" {
-		err := views.Polls(polls).Render(r.Context(), w)
-		if err != nil {
-			RespondWithError(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-		return
-	}
-
-	err = views.Index(views.Polls(polls), "Webpolls - Polls").Render(r.Context(), w)
-	if err != nil {
-		RespondWithError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	return
+	RespondWithData(w, http.StatusOK, polls, "Encuestas obtenidas correctamente")
 }
 
 func (h *PollHandler) UpdateOption(w http.ResponseWriter, r *http.Request) {

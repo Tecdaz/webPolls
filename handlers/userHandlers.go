@@ -7,7 +7,6 @@ import (
 
 	"webpolls/services"
 	"webpolls/utils"
-	"webpolls/views"
 )
 
 // userHandler ahora depende de UserService
@@ -47,23 +46,7 @@ func (h *userHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if contentType == "application/json" {
-		RespondWithData(w, http.StatusCreated, user, "Usuario creado correctamente")
-		return
-	}
-
-	//Pagina web
-	users, err := h.service.GetUsers(r.Context())
-	if err != nil {
-		RespondWithError(w, http.StatusInternalServerError, "No se pudieron obtener los usuarios")
-		return
-	}
-	w.Header().Set("HX-Trigger", "reset-form")
-	w.WriteHeader(http.StatusCreated)
-	err = views.UserList(users).Render(r.Context(), w)
-	if err != nil {
-		RespondWithError(w, http.StatusInternalServerError, err.Error())
-	}
+	RespondWithData(w, http.StatusCreated, user, "Usuario creado correctamente")
 }
 
 func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
@@ -77,21 +60,6 @@ func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	deletedUsername, err := h.service.DeleteUser(r.Context(), userID)
 	if err != nil {
 		RespondWithError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	//WEB
-	if r.Header.Get("HX-Request") == "true" {
-		users, err := h.service.GetUsers(r.Context())
-		if err != nil {
-			RespondWithError(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-		err = views.UserList(users).Render(r.Context(), w)
-		if err != nil {
-			RespondWithError(w, http.StatusInternalServerError, err.Error())
-			return
-		}
 		return
 	}
 
@@ -154,27 +122,5 @@ func (h *userHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//API
-	acceptType := r.Header.Get("Accept")
-	if acceptType == "application/json" {
-		RespondWithData(w, http.StatusOK, users, "Usuarios obtenidos correctamente")
-		return
-	}
-
-	//WEB
-	if r.Header.Get("HX-Request") == "true" {
-		err = views.Users(users).Render(r.Context(), w)
-		if err != nil {
-			RespondWithError(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-		return
-	}
-
-	err = views.Index(views.Users(users), "Usuarios - Webpolls").Render(r.Context(), w)
-	if err != nil {
-		RespondWithError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	return
+	RespondWithData(w, http.StatusOK, users, "Usuarios obtenidos correctamente")
 }
