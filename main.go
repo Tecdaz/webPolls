@@ -26,13 +26,9 @@ func main() {
 	// Inicializar handlers con los servicios
 	userHandler := handlers.NewUserHandler(userService)
 	pollHandler := handlers.NewPollHandler(pollService)
-	homeHandler := handlers.NewHomeHandler(userService)
 
 	// Crear un nuevo mux y registrar todas las rutas
 	mux := http.NewServeMux()
-
-	// Rutas de home
-	mux.HandleFunc("GET /{$}", homeHandler.GetHome)
 
 	// Rutas de usuarios
 	mux.HandleFunc("POST /users/create", userHandler.CreateUser)
@@ -53,6 +49,10 @@ func main() {
 
 	// Aplicar el middleware a todo el mux
 	loggedMux := middleware.LoggingMiddleware(mux)
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./static/index.html")
+	})
 
 	// inicio servidor
 	port := ":8080"

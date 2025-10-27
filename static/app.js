@@ -6,10 +6,13 @@ function showMessage(elementId, message, isError = false) {
   setTimeout(() => (el.style.display = 'none'), 3000);
 }
 
+
 //renderizado
 function renderPolls(polls) {
   const container = document.getElementById('pollsContainer');
   container.innerHTML = '';
+
+  console.log(polls);
 
   if (!polls || polls.length === 0) {
     container.innerHTML = `<p class="no-polls">No hay encuestas creadas todavía.</p>`;
@@ -64,7 +67,10 @@ function renderPolls(polls) {
 // obtener las encuestas 
 async function getPolls() {
   try {
-    const res = await fetch('/polls');
+    const res = await fetch('/polls', {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' },
+    });
     if (!res.ok) throw new Error('Error al obtener encuestas');
     
     const data = await res.json();
@@ -81,11 +87,14 @@ async function getPolls() {
 async function createPoll(question, options) {
   try {
     //user id = 3 queda hasta que se aplique las partes de las secciones en los users
+
     const body = { question, options, user_id: 3 };
    
     const res = await fetch('/polls/create', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json',
+        'Accept': 'application/json'
+       },
       body: JSON.stringify(body),
     });
 
@@ -103,7 +112,7 @@ async function createPoll(question, options) {
 // eliminar encuesta
 async function deletePoll(id) {
   try {
-    const res = await fetch(`/polls/${id}`, { method: 'DELETE' });
+    const res = await fetch(`/polls/${id}`, { method: 'DELETE', headers: { 'Accept': 'application/json' } });
     if (!res.ok) throw new Error('Error al eliminar');
 
     const pollEl = document.getElementById(`poll-${id}`);
@@ -117,6 +126,9 @@ async function deletePoll(id) {
       }, 300);
     }
 
+    getPolls();
+    console.log(pollsData);
+
     showMessage('formMessage', 'Encuesta eliminada correctamente');
   } catch (err) {
     console.error(err);
@@ -129,7 +141,9 @@ async function toggleCorrect(optionId, newValue) {
   try {
     const res = await fetch(`/options/${optionId}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json',
+        'Accept': 'application/json'
+       },
       body: JSON.stringify({ correct: newValue }),
     }); 
     if (!res.ok) throw new Error('Error al actualizar opción')
