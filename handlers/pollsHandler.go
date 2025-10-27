@@ -67,6 +67,7 @@ func (h *PollHandler) CreatePoll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("HX-Trigger", "reset-form")
+	w.WriteHeader(http.StatusCreated)
 	err = views.PollList(polls).Render(r.Context(), w)
 	if err != nil {
 		RespondWithError(w, http.StatusInternalServerError, err.Error())
