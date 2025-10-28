@@ -13,30 +13,27 @@
     <nav>
       <div class="nav-container">
         <div class="logo">
-          <a href="#inicio" aria-label="Inicio">
+          <a href="/static/presentation.html" aria-label="Inicio">
             <img src="/static/logo.svg" alt="Logo de WebPolls" />
           </a>
         </div>
 
         <div class="desktop-menu">
-          <a href="#crear" aria-label="Ir a crear encuesta">Crear</a>
-          <a href="#encuestas" aria-label="Ver encuestas">Encuestas</a>
-          <a href="#perfil" aria-label="Ir al perfil">Perfil</a>
+          <a href="/static/presentation.html" aria-label="Ir a crear encuesta">Principal</a>
+          <a href="/static/usuarios.html" aria-label="Ir al perfil">Usuarios</a>
         </div>
       </div>
     </nav>
   </header>
-
+  <h1 class="h1UnderHeader">Crea Tus Propias Encuestas </h1>
   <main class="main">
-    <h1 class="h1UnderHeader">Bienvenido a WebPolls</h1>
-
     <!--creacion de encuestas-->
     <section id="crear" class="createPollDiv" aria-label="Formulario de creación de encuestas">
       <h1>Crea una encuesta</h1>
       <form id="pollForm" autocomplete="off">
         <label for="question">Pregunta de la Encuesta</label>
-        <input type="text" id="question" name="question" placeholder="Escribe la pregunta..." required />
-
+        <input type="text" id="question" name="question" placeholder="Escribe una pregunta..." required />
+        
         <div id="optsContainer"></div>
 
         <button type="button" id="addOptBtn">Agregar Opción</button>
@@ -51,10 +48,12 @@
       <div id="pollsContainer">
         <p class="no-polls">No hay encuestas creadas todavía.</p>
       </div>
-      <div id="loadingMessage" class="loading" style="display: none;">
+      <div id="loadingMpollsSectionessage" class="loading" style="display: none;">
         Cargando encuestas...
       </div>
     </section>
+      
+    <div id="messagesContainer" class="messagesContainer" aria-live="polite" aria-atomic="true"></div>
   </main>
 </body>
 </html>

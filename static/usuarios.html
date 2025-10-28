@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/static/styles.css" />
+  <title>WebPolls - Creador de Encuestas</title>
+  <script src="/static/app.js" defer></script>
+</head>
+
+<body>
+  <header>
+    <nav>
+      <div class="nav-container">
+        <div class="logo">
+          <a href="/static/presentation.html" aria-label="Inicio">
+            <img src="/static/logo.svg" alt="Logo de WebPolls" />
+          </a>
+        </div>
+
+        <div class="desktop-menu">
+          <a href="/static/presentation.html" aria-label="Ir a crear encuesta">Principal</a>
+          <a href="#encuestas" aria-label="Ver encuestas">Encuestas</a>
+        </div>
+      </div>
+    </nav>
+  </header>
+  <h1 class="h1UnderHeader">Usuarios</h1>
+  <main class="main">
+    <!--creacion de usuarios-->
+    <section class="createPollDiv" >
+        <form id="userForm" autocomplete="off">
+            <h1>Crea un usuario</h1>
+            
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" placeholder="Escribe un nombre de usuario..." required />
+            
+            <label for="email">Mail</label>
+            <input type="email" id="email"  name="email" placeholder="Escribe tu mail..." required />
+
+            
+            <label for="password">Password</label>
+            <input type="text" id="password" name="password" placeholder="Escribe tu contraseña..." required />
+            
+            <button type="submit">Crear Usuario</button>
+        </form>
+    </section>
+
+    <section class="pollsSection">
+        <p class="no-polls">NO BORRAR USER ID=3 PORQUE LO TENEMOS HARDCODEADO LOS DEMAS SI</p>
+        <div id="usersContainer" class="pollsContainer">
+            
+        </div>
+        <p class="no-polls">Entiendase, esto es conceptual hasta crear las sesiones JWT. NO BORRAR USER ID=3 PORQUE LO TENEMOS HARDCODEADO LOS DEMAS SI</p>
+    </section>
+    <div id="messagesContainer" class="messagesContainer" aria-live="polite" aria-atomic="true"></div>
+  </main>
+</body>

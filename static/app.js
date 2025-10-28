@@ -1,12 +1,25 @@
-function showMessage(elementId, message, isError = false) {
-  const el = document.getElementById(elementId);
-  el.textContent = message;
-  el.style.display = 'block';
-  el.className = isError ? 'message error' : 'message success';
-  setTimeout(() => (el.style.display = 'none'), 3000);
+function showMessage(message, isError = false, timeout = 3000) {
+  console.log("dentro de show message")
+  const container = document.getElementById('messagesContainer');
+  if (!container) return;
+  console.log("container de mensajes existe")
+  const messageDiv = document.createElement('div')
+  messageDiv.className = isError ? 'message error' : 'message success';
+  messageDiv.textContent = message;
+  container.appendChild(messageDiv);
+
+  console.log("mensaje agregado al contenedor")
+  requestAnimationFrame(() => {
+    messageDiv.classList.add('visible');
+  })
+  console.log("mensaje visible")
+  setTimeout(()=>{
+    messageDiv.classList.remove('visible');
+    messageDiv.addEventListener('transitionend', () => messageDiv.remove() , { once: true });
+  }, timeout);
+  console.log("mensaje programado para desaparecer")
 }
-
-
+/*SECCION DE POLLS*/
 //renderizado
 function renderPolls(polls) {
   const container = document.getElementById('pollsContainer');
@@ -39,10 +52,7 @@ function renderPolls(polls) {
           <li>
             ${opt.content}
             <button class="${opt.correct ? 'markCorrectBtnTrue' : 'markCorrectBtnFalse'}" 
-              data-option-id="${opt.id}" 
-              data-poll-id="${pollId}" 
-              data-correct="${opt.correct}">
-              ${opt.correct ? 'Selected' : 'Select'}
+              todavia no se agrego la logica
             </button>
           </li>`
           )
@@ -76,10 +86,10 @@ async function getPolls() {
     const data = await res.json();
     const polls = data.data || data; //aca toma la lista de encuestas del campo data
     renderPolls(Array.isArray(polls) ? polls : []);
+    
   
   } catch (err) {
     console.error(err);
-    showMessage('formMessage', 'Error al cargar encuestas', true);
   } 
 }
 
@@ -101,11 +111,11 @@ async function createPoll(question, options) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Error al crear encuesta');
 
-    showMessage('formMessage', 'Encuesta creada correctamente');
+     showMessage('Encuesta creada correctamente');
     await getPolls();
   } catch (err) {
     console.error(err);
-    showMessage('formMessage', 'Error al crear encuesta', true);
+    showMessage('Error al crear encuesta', true);
   }
 }
 
@@ -128,11 +138,11 @@ async function deletePoll(id) {
 
     getPolls();
     console.log(pollsData);
-
-    showMessage('formMessage', 'Encuesta eliminada correctamente');
+   showMessage('Encuesta eliminada correctamente');
+  
   } catch (err) {
     console.error(err);
-    showMessage('formMessage', 'Error al eliminar encuesta', true);
+       showMessage('Error al eliminar encuesta', true);
   }
 }
 
@@ -152,15 +162,32 @@ async function toggleCorrect(optionId, newValue) {
   }
 }
 
-// eventos globales
+// eventos 
 document.addEventListener('DOMContentLoaded', () => {
   getPolls();
+  getUsers();
+
+  // crear usuario
+  const userForm = document.getElementById('userForm');
+  userForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = e.target.username.value.trim();
+    const email = e.target.email.value.trim();
+    const password = e.target.password.value.trim();
+
+    if (!username) return showMessage('formMessage', 'El nombre de usuario no puede estar vacío', true);
+    if (!email) return showMessage('formMessage', 'El email no puede estar vacío', true);
+    if (!password) return showMessage('formMessage', 'La contraseña no puede estar vacía', true);
+
+    await createUser(username, email, password);
+    userForm.reset();
+  });
 
   const form = document.getElementById('pollForm');
   const optsContainer = document.getElementById('optsContainer');
   const addBtn = document.getElementById('addOptBtn');
 
-  // crear encuesta
+  // crear
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const question = e.target.question.value.trim();
@@ -224,3 +251,108 @@ document.addEventListener('click', async (event) => {
     console.error('Error al actualizar en servidor:', err);
   }
 });
+
+/*SECCION DE USUARIOS*/
+async function createUser(username, email, password) {
+  try {
+    const body = { username, email, password }
+
+    const res = await fetch('/users/create',{
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json',
+        'Accept': 'application/json'
+       },
+      body: JSON.stringify(body),
+    })
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Error al crear usuario');
+    getUsers();
+    showMessage('Usuario creado correctamente');
+  }catch (err) {
+    console.error(err);
+    showMessage('Error al crear usuario', true);
+  }
+}
+
+async function getUsers (){
+  try {
+    const res = await fetch('/users', {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' },
+    });
+    if (!res.ok) throw new Error('Error al obtener usuarios');
+
+    const data = await res.json();
+    const users = data.data || data; //aca toma la lista de usuarios del campo data
+    renderUsers(Array.isArray(users) ? users : []);
+  }catch (err) {
+    console.error(err);
+    showMessage('Error al cargar usuarios', true);
+  }
+}
+
+async function renderUsers (users){
+  const container = document.getElementById('usersContainer');
+  container.innerHTML = '';
+
+  if (!users || users.length === 0) {
+    container.innerHTML = `<p class="no-users">No hay usuarios registrados todavía.</p>`;
+    return;
+  }
+
+  users.forEach((user)=>{
+    const div = document.createElement('div');
+    div.classList.add('singleUserDiv');
+    div.id = `user-${user.user_id}`;
+
+    const userId = user.user_id || user.id;
+    const username = user.username;
+    const email = user.email;
+
+    div.innerHTML = `
+      <h3>${username}</h3>
+      <p>Email: ${email}</p>
+      <p>User ID: ${userId}</p>
+    `;
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = 'Eliminar Encuesta';
+    deleteBtn.classList.add('deleteBtn');
+    deleteBtn.dataset.id = userId;
+    deleteBtn.addEventListener('click', async () => {
+        await deleteUser(userId);
+    });
+
+    div.appendChild(deleteBtn);
+    container.appendChild(div);
+  })
+}
+
+async function deleteUser (id){
+
+  try {
+    const res = await fetch(`/users/${id}`,{
+        method: 'DELETE', 
+        headers: { 'Accept': 'application/json' } }
+    )
+    if (!res.ok) throw new Error('Error al eliminar usuario');
+
+    const userEl = document.getElementById(`user-${id}`);
+    if (userEl) {
+      userEl.style.opacity = '0';
+      setTimeout(() => {
+        userEl.remove();
+
+        const remaining = document.querySelectorAll('.singleUserDiv').length;
+        if (remaining === 0) renderUsers([]);
+      }, 300);
+    }
+
+    getUsers();
+    showMessage('Usuario eliminado correctamente');
+  }catch (err) {
+    console.error(err);
+    showMessage('Error al eliminar usuario', true);
+  }
+}
