@@ -164,63 +164,70 @@ async function toggleCorrect(optionId, newValue) {
 
 // eventos 
 document.addEventListener('DOMContentLoaded', () => {
-  getPolls();
-  getUsers();
+  const pollsContainer = document.getElementById('pollsContainer');
+  const usersContainer = document.getElementById('usersContainer');
+  
+  if (pollsContainer) getPolls();
+  if (usersContainer) getUsers();
 
   // crear usuario
   const userForm = document.getElementById('userForm');
-  userForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const username = e.target.username.value.trim();
-    const email = e.target.email.value.trim();
-    const password = e.target.password.value.trim();
+  if (userForm){
+    userForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = e.target.username.value.trim();
+      const email = e.target.email.value.trim();
+      const password = e.target.password.value.trim();
 
-    if (!username) return showMessage('formMessage', 'El nombre de usuario no puede estar vacío', true);
-    if (!email) return showMessage('formMessage', 'El email no puede estar vacío', true);
-    if (!password) return showMessage('formMessage', 'La contraseña no puede estar vacía', true);
+      if (!username) return showMessage('formMessage', 'El nombre de usuario no puede estar vacío', true);
+      if (!email) return showMessage('formMessage', 'El email no puede estar vacío', true);
+      if (!password) return showMessage('formMessage', 'La contraseña no puede estar vacía', true);
 
-    await createUser(username, email, password);
-    userForm.reset();
-  });
+      await createUser(username, email, password);
+      userForm.reset();
+    });
+  }
 
-  const form = document.getElementById('pollForm');
+  const pollForm = document.getElementById('pollForm');
   const optsContainer = document.getElementById('optsContainer');
   const addBtn = document.getElementById('addOptBtn');
 
-  // crear
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const question = e.target.question.value.trim();
+  if (pollForm && optsContainer && addBtn){
+    // crear
+    pollForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const question = e.target.question.value.trim();
 
-    const options = Array.from(document.querySelectorAll('input[name="options[]"]'))
-      .map((input) => ({ content: input.value.trim(), correct: false }))
-      .filter((o) => o.content);
+      const options = Array.from(document.querySelectorAll('input[name="options[]"]'))
+        .map((input) => ({ content: input.value.trim(), correct: false }))
+        .filter((o) => o.content);
 
-    if (!question) return showMessage('formMessage', 'La pregunta no puede estar vacía', true);
-    if (options.length < 2) return showMessage('formMessage', 'Agrega al menos 2 opciones', true);
+      if (!question) return showMessage('formMessage', 'La pregunta no puede estar vacía', true);
+      if (options.length < 2) return showMessage('formMessage', 'Agrega al menos 2 opciones', true);
 
-    await createPoll(question, options);
-    form.reset();
-    optsContainer.innerHTML = '';
-  });
+      await createPoll(question, options);
+      pollForm.reset();
+      optsContainer.innerHTML = '';
+    });
 
-  // agregado de opciones
-  addBtn.addEventListener('click', () => {
-    if (document.querySelectorAll('input[name="options[]"]').length >= 4) {
-      showMessage('formMessage', 'Máximo 4 opciones permitidas', true);
-      return;
-    }
+    // agregado de opciones
+    addBtn.addEventListener('click', () => {
+      if (document.querySelectorAll('input[name="options[]"]').length >= 4) {
+        showMessage('formMessage', 'Máximo 4 opciones permitidas', true);
+        return;
+      }
 
-    const optDiv = document.createElement('div');
-    optDiv.classList.add('opt');
-    optDiv.innerHTML = `
-      <label>Opción</label>
-      <input type="text" name="options[]" placeholder="Escribe una opción..." required>
-      <button type="button" class="deleteOptBtn">Eliminar</button>
-    `;
-    optDiv.querySelector('.deleteOptBtn').addEventListener('click', () => optDiv.remove());
-    optsContainer.appendChild(optDiv);
-  });
+      const optDiv = document.createElement('div');
+      optDiv.classList.add('opt');
+      optDiv.innerHTML = `
+        <label>Opción</label>
+        <input type="text" name="options[]" placeholder="Escribe una opción..." required>
+        <button type="button" class="deleteOptBtn">Eliminar</button>
+      `;
+      optDiv.querySelector('.deleteOptBtn').addEventListener('click', () => optDiv.remove());
+      optsContainer.appendChild(optDiv);
+    });
+  }
 });
 
  // click de botones de seleccion
