@@ -4,47 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebPolls</title>
-    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
 <header>
-      <nav>
-        <div class="nav-container">
-          <div class="logo">
-            <a href="/static/presentation.html">
-              <img
-                src="/static/logo.svg"
-                alt="Logo"
-              />
-            </a>
-          </div>
-
-          <!-- Menú Desktop -->
-          <div class="desktop-menu">
-            <a href="/static/index.html">encuestas</a>
-            <a href="/static/usuarios.html">usuarios</a>
-          </div>
-
-          <!-- Botón menú móvil -->
-          <button id="menu-toggle">
-            <i class="fas fa-bars"></i>
-          </button>
+    <nav>
+      <div class="nav-container">
+        <div class="logo">
+          <a href="/presentation.html" aria-label="Inicio">
+            <img src="/logo.svg" alt="Logo de WebPolls" />
+          </a>
         </div>
 
-        <!-- Menú Móvil -->
-        <div id="mobile-menu">
-            <a href="#programas">menu</a>
-            <a href="/static/index.html">encuestas</a>
-            <a href="#instalaciones">perfil</a>
-          </div>
+        <div class="desktop-menu">
+          <a href="/presentation.html" aria-label="Ir a crear encuesta">Inicio</a>
+          <a href="/" aria-label="Ir a crear encuesta">Encuestas</a>
+          <a href="/usuarios.html" aria-label="Ir al perfil">Usuarios</a>
         </div>
-      </nav>
-    </header>
+      </div>
+    </nav>
+  </header>
     <section class="presentationSection">
         <h1>BIENVENIDO A WEBPOLLS</h1>
         <p>En esta pagina podras administrar tus encuestas y ver que contesta la gente de manera anonima, con tu usuario podras administrar tus encuestas y ver sus resultados</p>
         <br/>
-        <p>En este punto ya estan generados los modelos de base de datos.</p>
+        <p>En este punto ya se pueden ver, crear y eliminar encuestas y usuarios.
+        </p>
       </section>
 </body>
 </html>

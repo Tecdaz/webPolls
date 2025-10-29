@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="/static/styles.css" />
+  <link rel="stylesheet" href="/styles.css" />
   <title>WebPolls - Creador de Encuestas</title>
-  <script src="/static/app.js" defer></script>
+  <script src="/app.js" defer></script>
 </head>
 
 <body>
@@ -13,14 +13,15 @@
     <nav>
       <div class="nav-container">
         <div class="logo">
-          <a href="/static/presentation.html" aria-label="Inicio">
-            <img src="/static/logo.svg" alt="Logo de WebPolls" />
+          <a href="/presentation.html" aria-label="Inicio">
+            <img src="/logo.svg" alt="Logo de WebPolls" />
           </a>
         </div>
 
         <div class="desktop-menu">
-          <a href="/static/presentation.html" aria-label="Ir a crear encuesta">Principal</a>
-          <a href="#encuestas" aria-label="Ver encuestas">Encuestas</a>
+          <a href="/presentation.html" aria-label="Ir a crear encuesta">Inicio</a>
+          <a href="/" aria-label="Ir a crear encuesta">Encuestas</a>
+          <a href="/usuarios.html" aria-label="Ir al perfil">Usuarios</a>
         </div>
       </div>
     </nav>
@@ -40,18 +41,15 @@
 
             
             <label for="password">Password</label>
-            <input type="text" id="password" name="password" placeholder="Escribe tu contraseña..." required />
+            <input type="password" id="password" name="password" placeholder="Escribe tu contraseña..." required />
             
             <button type="submit">Crear Usuario</button>
         </form>
     </section>
 
     <section class="pollsSection">
-        <p class="no-polls">NO BORRAR USER ID=3 PORQUE LO TENEMOS HARDCODEADO LOS DEMAS SI</p>
         <div id="usersContainer" class="pollsContainer">
-            
         </div>
-        <p class="no-polls">Entiendase, esto es conceptual hasta crear las sesiones JWT. NO BORRAR USER ID=3 PORQUE LO TENEMOS HARDCODEADO LOS DEMAS SI</p>
     </section>
     <div id="messagesContainer" class="messagesContainer" aria-live="polite" aria-atomic="true"></div>
   </main>
