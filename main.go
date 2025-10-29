@@ -45,14 +45,18 @@ func main() {
 	mux.HandleFunc("PUT /options/{id}", pollHandler.UpdateOption)
 	mux.HandleFunc("DELETE /polls/{poll_id}/options/{id}", pollHandler.DeleteOption)
 
-	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
+	// Ruta para el index en la raíz
+	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/" {
+			http.ServeFile(w, r, "./static/index.html")
+			return
+		}
+		// Servir archivos estáticos para cualquier otra ruta
+		http.FileServer(http.Dir("./static")).ServeHTTP(w, r)
+	})
 
 	// Aplicar el middleware a todo el mux
 	loggedMux := middleware.LoggingMiddleware(mux)
-
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "./static/index.html")
-	})
 
 	// inicio servidor
 	port := ":8080"
