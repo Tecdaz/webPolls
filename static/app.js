@@ -115,9 +115,10 @@ async function createPoll(question, options) {
     });
 
     const data = await res.json();
+    console.log(data);
     if (!res.ok) throw new Error(data.message || 'Error al crear encuesta');
 
-     showMessage('Encuesta creada correctamente');
+    showMessage('Encuesta creada correctamente');
     await getPolls();
   } catch (err) {
     console.error(err);
@@ -145,8 +146,7 @@ async function deletePoll(id) {
     }
 
     getPolls(); //una vez eliminada se recargan todas las encuestas
-    console.log(pollsData);
-   showMessage('Encuesta eliminada correctamente');
+    showMessage('Encuesta eliminada correctamente');
   
   } catch (err) {
     console.error(err);
@@ -188,12 +188,26 @@ document.addEventListener('DOMContentLoaded', () => {
       const email = e.target.email.value.trim();
       const password = e.target.password.value.trim();
 
-      if (!username) return showMessage('formMessage', 'El nombre de usuario no puede estar vacío', true);
-      if (!email) return showMessage('formMessage', 'El email no puede estar vacío', true);
-      if (!password) return showMessage('formMessage', 'La contraseña no puede estar vacía', true);
+      if (!username){
+        showMessage('formMessage', 'El nombre de usuario no puede estar vacío', true);
+        return;
+      }
+      if (!email){
+        showMessage('formMessage', 'El email no puede estar vacío', true);
+        return;
+      }
+      if (!password){
+        showMessage('formMessage', 'La contraseña no puede estar vacía', true);
+        return;
+      }
 
-      await createUser(username, email, password);
-      userForm.reset(); //limpiar despues del envio
+      try {
+        await createUser(username, email, password);
+        userForm.reset(); //limpiar despues del envio
+      } catch (err) {
+        console.error(err);
+        showMessage('formMessage', 'Error al crear usuario', true);
+      }
     });
   }
 
@@ -212,18 +226,30 @@ document.addEventListener('DOMContentLoaded', () => {
         .map((input) => ({ content: input.value.trim(), correct: false })) //convertir en objeto porque es lo que espera la API
         .filter((o) => o.content); //filtrar opciones vacias
 
-      if (!question) return showMessage('formMessage', 'La pregunta no puede estar vacía', true);
-      if (options.length < 2) return showMessage('formMessage', 'Agrega al menos 2 opciones', true);
+      if (!question){
+        showMessage('La pregunta no puede estar vacía', true);
+        return;
+      }
+      if (options.length < 2){
+        console.log(options);
+        showMessage('Agrega al menos 2 opciones', true);
+        return;
+      }
 
-      await createPoll(question, options);
-      pollForm.reset();
-      optsContainer.innerHTML = '';
+      try {
+        await createPoll(question, options);
+        pollForm.reset();
+        optsContainer.innerHTML = '';
+      } catch (err) {
+        console.error(err);
+        showMessage('formMessage', 'Error al crear encuesta', true);
+      }
     });
 
     // agregado de opciones
     addBtn.addEventListener('click', () => {
       if (document.querySelectorAll('input[name="options[]"]').length >= 4) {
-        showMessage('formMessage', 'Máximo 4 opciones permitidas', true);
+        showMessage('Máximo 4 opciones permitidas', true);
         return;
       }
 
@@ -242,33 +268,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // todo esto pertenece a la logica del boton de seleccion que todavia no implementamos -> pendiente
  // click de botones de seleccion
-  document.addEventListener('click', async (event) => {
-  const btn = event.target;
+//   document.addEventListener('click', async (event) => {
+//   const btn = event.target;
 
-  //verificar que sea uno de los botones correctos
-  if (!btn.matches('button[data-option-id]')) return;
+//   //verificar que sea uno de los botones correctos
+//   if (!btn.matches('button[data-option-id]')) return;
 
-  const optionId = btn.dataset.optionId;
-  const pollId = btn.dataset.pollId;
-  const currentState = btn.dataset.correct === 'true';
-  const newValue = !currentState;
+//   const optionId = btn.dataset.optionId;
+//   const pollId = btn.dataset.pollId;
+//   const currentState = btn.dataset.correct === 'true';
+//   const newValue = !currentState;
 
-  //actualizar visualmente
-  btn.classList.remove(currentState ? 'markCorrectBtnTrue' : 'markCorrectBtnFalse');
-  btn.classList.add(newValue ? 'markCorrectBtnTrue' : 'markCorrectBtnFalse');
-  btn.textContent = newValue ? 'Selected' : 'Select';
+//   //actualizar visualmente
+//   btn.classList.remove(currentState ? 'markCorrectBtnTrue' : 'markCorrectBtnFalse');
+//   btn.classList.add(newValue ? 'markCorrectBtnTrue' : 'markCorrectBtnFalse');
+//   btn.textContent = newValue ? 'Selected' : 'Select';
 
-  //actualizar el atributo del dataset (muy importante)
-  btn.dataset.correct = String(newValue);
+//   //actualizar el atributo del dataset (muy importante)
+//   btn.dataset.correct = String(newValue);
 
-  //llamar al backend
-  try {
-    await toggleCorrect(optionId, newValue);
-    getPolls()
-  } catch (err) {
-    console.error('Error al actualizar en servidor:', err);
-  }
-});
+//   //llamar al backend
+//   try {
+//     await toggleCorrect(optionId, newValue);
+//     getPolls()
+//   } catch (err) {
+//     console.error('Error al actualizar en servidor:', err);
+//   }
+// });
 
 // termina la logica del boton de seleccion
 
@@ -316,6 +342,10 @@ async function renderUsers (users){
   const container = document.getElementById('usersContainer');
   container.innerHTML = '';
 
+  //Eliminar el user con id = 3
+  users = users.filter(user => user.id   !== 3);
+  console.log(users);
+
   if (!users || users.length === 0) {
     container.innerHTML = `<p class="no-users">No hay usuarios registrados todavía.</p>`;
     return;
@@ -325,9 +355,9 @@ async function renderUsers (users){
   users.forEach((user)=>{
     const div = document.createElement('div');
     div.classList.add('singleUserDiv');
-    div.id = `user-${user.user_id}`;
+    div.id = `user-${user.id}`;
 
-    const userId = user.user_id || user.id; //porque en user service y pollservice tenemos diferentes convenciones
+    const userId = user.id; //porque en user service y pollservice tenemos diferentes convenciones
     const username = user.username;
     const email = user.email;
     //insrtar la info del usuario en el div
