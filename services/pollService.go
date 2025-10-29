@@ -8,15 +8,15 @@ import (
 	db "webpolls/db/sqlc"
 )
 
-// PollService encapsula la lógica de negocio para las encuestas.
+//encapsula la lógica de negocio para las encuestas.
 type PollService struct {
 	Queries *db.Queries // <-- Exportado (con mayúscula)
 	DB      *sql.DB
 }
 
-// NewPollService crea una nueva instancia de PollService.
+//crea una nueva instancia de PollService.
 func NewPollService(queries *db.Queries, db *sql.DB) *PollService {
-	return &PollService{Queries: queries, DB: db} // <-- actualizado
+	return &PollService{Queries: queries, DB: db} 
 }
 
 type OptionResponse = db.Option

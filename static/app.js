@@ -3,18 +3,22 @@ function showMessage(message, isError = false, timeout = 3000) {
   const container = document.getElementById('messagesContainer');
   if (!container) return;
   console.log("container de mensajes existe")
+
+  //div dinamico para contener el texto del mensaje
   const messageDiv = document.createElement('div')
+  
+  //asignamos clases dependiendo si es error o exito para los estilos
   messageDiv.className = isError ? 'message error' : 'message success';
   messageDiv.textContent = message;
-  container.appendChild(messageDiv);
+  container.appendChild(messageDiv); //insertamos en DOM para hacer visible el mensaje en la pagina
 
   console.log("mensaje agregado al contenedor")
   requestAnimationFrame(() => {
     messageDiv.classList.add('visible');
   })
   console.log("mensaje visible")
-  setTimeout(()=>{
-    messageDiv.classList.remove('visible');
+  setTimeout(()=>{ //animaciones de entrada y salida
+    messageDiv.classList.remove('visible'); 
     messageDiv.addEventListener('transitionend', () => messageDiv.remove() , { once: true });
   }, timeout);
   console.log("mensaje programado para desaparecer")
@@ -38,11 +42,12 @@ function renderPolls(polls) {
     div.id = `poll-${poll.poll_id}`;
     
     //revisar esta parte, por que si a veces viene poll.title y otras poll.question esta mal
+    //algunos backends pueden devolver poll_id o id, por eso se contemplan ambos
     const pollId = poll.poll_id || poll.id;
     const title = poll.title || poll.question;
-    const options = poll.options || [];
+    const options = poll.options || []; //si no hay opciones se evita un error
 
-    //seccion de agregado de boton a la opcion
+    //seccion de agregado de boton para maracar la opcion -> pendiente
     div.innerHTML = `
       <h3>${title}</h3>
       <ul>
@@ -61,6 +66,7 @@ function renderPolls(polls) {
     `;
 
     //boton eliminar encuesta
+    //cada una tiene su propio listener
     const deleteBtn = document.createElement('button');
     deleteBtn.textContent = 'Eliminar Encuesta';
     deleteBtn.classList.add('deleteBtn');
@@ -70,7 +76,7 @@ function renderPolls(polls) {
     });
 
     div.appendChild(deleteBtn);
-    container.appendChild(div);
+    container.appendChild(div); //agrega encuesta completa al DOM
   });
 }
 
@@ -84,7 +90,7 @@ async function getPolls() {
     if (!res.ok) throw new Error('Error al obtener encuestas');
     
     const data = await res.json();
-    const polls = data.data || data; //aca toma la lista de encuestas del campo data
+    const polls = data.data; //saque || data porque el backend siempre devuelve envuelto en data
     renderPolls(Array.isArray(polls) ? polls : []);
     
   
@@ -126,6 +132,8 @@ async function deletePoll(id) {
     if (!res.ok) throw new Error('Error al eliminar');
 
     const pollEl = document.getElementById(`poll-${id}`);
+
+    //animacion de salida antes de eliminar del DOM
     if (pollEl) {
       pollEl.style.opacity = '0';
       setTimeout(() => {
@@ -136,7 +144,7 @@ async function deletePoll(id) {
       }, 300);
     }
 
-    getPolls();
+    getPolls(); //una vez eliminada se recargan todas las encuestas
     console.log(pollsData);
    showMessage('Encuesta eliminada correctamente');
   
@@ -146,7 +154,7 @@ async function deletePoll(id) {
   }
 }
 
-// actualizar el estado de una opcion al seleccionar
+// actualizar el estado de una opcion al seleccionar -> pendiente, se puede comentar o sacar
 async function toggleCorrect(optionId, newValue) {
   try {
     const res = await fetch(`/options/${optionId}`, {
@@ -167,6 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const pollsContainer = document.getElementById('pollsContainer');
   const usersContainer = document.getElementById('usersContainer');
   
+  //cargamos los datos dependiendo la pagina donde esta el usuario
   if (pollsContainer) getPolls();
   if (usersContainer) getUsers();
 
@@ -184,7 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!password) return showMessage('formMessage', 'La contraseña no puede estar vacía', true);
 
       await createUser(username, email, password);
-      userForm.reset();
+      userForm.reset(); //limpiar despues del envio
     });
   }
 
@@ -194,13 +203,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (pollForm && optsContainer && addBtn){
     // crear
+    // los inputs dinamicos de opciones se convierten en arreglos de opciones para poder usar map y filter
     pollForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const question = e.target.question.value.trim();
 
       const options = Array.from(document.querySelectorAll('input[name="options[]"]'))
-        .map((input) => ({ content: input.value.trim(), correct: false }))
-        .filter((o) => o.content);
+        .map((input) => ({ content: input.value.trim(), correct: false })) //convertir en objeto porque es lo que espera la API
+        .filter((o) => o.content); //filtrar opciones vacias
 
       if (!question) return showMessage('formMessage', 'La pregunta no puede estar vacía', true);
       if (options.length < 2) return showMessage('formMessage', 'Agrega al menos 2 opciones', true);
@@ -217,24 +227,25 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      const optDiv = document.createElement('div');
+      const optDiv = document.createElement('div'); //contenedor de cada opcion
       optDiv.classList.add('opt');
       optDiv.innerHTML = `
         <label>Opción</label>
         <input type="text" name="options[]" placeholder="Escribe una opción..." required>
         <button type="button" class="deleteOptBtn">Eliminar</button>
       `;
-      optDiv.querySelector('.deleteOptBtn').addEventListener('click', () => optDiv.remove());
+      optDiv.querySelector('.deleteOptBtn').addEventListener('click', () => optDiv.remove()); //agregamos el evento al boton recien creado
       optsContainer.appendChild(optDiv);
     });
   }
 });
 
+// todo esto pertenece a la logica del boton de seleccion que todavia no implementamos -> pendiente
  // click de botones de seleccion
-document.addEventListener('click', async (event) => {
+  document.addEventListener('click', async (event) => {
   const btn = event.target;
 
-  // Verificar que sea uno de los botones correctos
+  //verificar que sea uno de los botones correctos
   if (!btn.matches('button[data-option-id]')) return;
 
   const optionId = btn.dataset.optionId;
@@ -242,15 +253,15 @@ document.addEventListener('click', async (event) => {
   const currentState = btn.dataset.correct === 'true';
   const newValue = !currentState;
 
-  // Actualizar visualmente
+  //actualizar visualmente
   btn.classList.remove(currentState ? 'markCorrectBtnTrue' : 'markCorrectBtnFalse');
   btn.classList.add(newValue ? 'markCorrectBtnTrue' : 'markCorrectBtnFalse');
   btn.textContent = newValue ? 'Selected' : 'Select';
 
-  //Actualizar el atributo del dataset (muy importante)
+  //actualizar el atributo del dataset (muy importante)
   btn.dataset.correct = String(newValue);
 
-  //Llamar al backend
+  //llamar al backend
   try {
     await toggleCorrect(optionId, newValue);
     getPolls()
@@ -258,6 +269,8 @@ document.addEventListener('click', async (event) => {
     console.error('Error al actualizar en servidor:', err);
   }
 });
+
+// termina la logica del boton de seleccion
 
 /*SECCION DE USUARIOS*/
 async function createUser(username, email, password) {
@@ -274,7 +287,7 @@ async function createUser(username, email, password) {
 
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Error al crear usuario');
-    getUsers();
+    getUsers(); //recarga usuarios para mostrar el nuevo
     showMessage('Usuario creado correctamente');
   }catch (err) {
     console.error(err);
@@ -291,7 +304,7 @@ async function getUsers (){
     if (!res.ok) throw new Error('Error al obtener usuarios');
 
     const data = await res.json();
-    const users = data.data || data; //aca toma la lista de usuarios del campo data
+    const users = data.data; //borre || data de aca tambien
     renderUsers(Array.isArray(users) ? users : []);
   }catch (err) {
     console.error(err);
@@ -308,26 +321,28 @@ async function renderUsers (users){
     return;
   }
 
+  //creacion de contenedor para cada usuario
   users.forEach((user)=>{
     const div = document.createElement('div');
     div.classList.add('singleUserDiv');
     div.id = `user-${user.user_id}`;
 
-    const userId = user.user_id || user.id;
+    const userId = user.user_id || user.id; //porque en user service y pollservice tenemos diferentes convenciones
     const username = user.username;
     const email = user.email;
-
-    div.innerHTML = `
+    //insrtar la info del usuario en el div
+    div.innerHTML = ` 
       <h3>${username}</h3>
       <p>Email: ${email}</p>
       <p>User ID: ${userId}</p>
     `;
 
+    //boton eliminar para el usuario
     const deleteBtn = document.createElement('button');
-    deleteBtn.textContent = 'Eliminar Encuesta';
+    deleteBtn.textContent = 'Eliminar Usuario';
     deleteBtn.classList.add('deleteBtn');
     deleteBtn.dataset.id = userId;
-    deleteBtn.addEventListener('click', async () => {
+    deleteBtn.addEventListener('click', async () => { //listener para el evento click que llama a deletePoll
         await deleteUser(userId);
     });
 
@@ -352,11 +367,11 @@ async function deleteUser (id){
         userEl.remove();
 
         const remaining = document.querySelectorAll('.singleUserDiv').length;
-        if (remaining === 0) renderUsers([]);
+        if (remaining === 0) renderUsers([]); //si era el ultimo mostramos que no hay usuarios
       }, 300);
     }
 
-    getUsers();
+    getUsers(); //se recargan todos los usuarios del servidor
     showMessage('Usuario eliminado correctamente');
   }catch (err) {
     console.error(err);

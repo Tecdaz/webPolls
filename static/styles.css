@@ -131,7 +131,7 @@ nav {
     font-weight: 700px;
 }
 
-/* parte del form*/
+/*PARTE DEL FORM*/
 .createPollDiv {
     display: flex;
     flex-direction: column;
@@ -270,7 +270,7 @@ nav {
     border-radius: 20px;
 }
 
-/* botones en general*/
+/*BOTONES EN GENERAL*/
 .createPollDiv form button {
     width: 100%;
     height: 50px;
@@ -345,7 +345,7 @@ nav {
     box-shadow: 0 0 10px rgba(128, 128, 128, 0.4);
 }
 
-/*parte de los usuarios*/
+/*PARTE DE USUARIOS*/
 .singleUserDiv{
     background: var(--surface);
     display: flex;
@@ -367,7 +367,7 @@ nav {
     border-color: var(--primary-light);
 }
 
-/* parte de los mensajes*/
+/*MENSAJES*/
 .messagesContainer {
     position: fixed;
     top: 20px;
@@ -379,7 +379,7 @@ nav {
     pointer-events: none;
 }
 
-/* Estilos base del mensaje */
+/* ESTILOS BASE DE MENSAJE*/
 .message {
     background: white;
     padding: 1rem 1.5rem;

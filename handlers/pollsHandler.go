@@ -97,7 +97,7 @@ func (h *PollHandler) GetPoll(w http.ResponseWriter, r *http.Request) {
 	RespondWithData(w, http.StatusOK, poll, "Encuesta obtenida correctamente")
 }
 
-// modificado para traer las opciones junto con la encuesta
+// trae las opciones junto con la encuesta
 func (h *PollHandler) GetPolls(w http.ResponseWriter, r *http.Request) {
 	polls, err := h.service.GetPolls(r.Context())
 	if err != nil {
@@ -139,8 +139,8 @@ func (h *PollHandler) UpdateOption(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *PollHandler) DeleteOption(w http.ResponseWriter, r *http.Request) {
-	idStr := r.PathValue("id")
-	poll_idStr := r.PathValue("poll_id")
+	idStr := r.PathValue("id") //id de la opcion a eliminar
+	poll_idStr := r.PathValue("poll_id") //id de la encuesta a la que pertenece la opcion
 	id, err := utils.ConvertTo32(idStr)
 	if err != nil {
 		log.Printf("Error converting option ID: %v", err)

@@ -7,6 +7,7 @@ import (
 )
 
 // ApiResponse es la estructura estándar para todas las respuestas de la API.
+// asi el frontend conoce de antemano la estructura que recibe por cada respuesta para siempre buscar los datos en el campo data y los mensajes de error en el campo error.
 type ApiResponse struct {
 	Data    interface{} `json:"data"`
 	Error   string      `json:"error,omitempty"`

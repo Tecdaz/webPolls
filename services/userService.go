@@ -23,18 +23,18 @@ func NewUserService(queries *db.Queries) *UserService {
 	return &UserService{Queries: queries}
 }
 func (s *UserService) CreateUser(ctx context.Context, params UserRequest) (*UserResponse, error) {
-	if params.Username == "" || params.Email == "" || params.Password == "" {
+	if params.Username == "" || params.Email == "" || params.Password == "" { 
 		return nil, errors.New("Todos los campos son obligatorios")
 	}
 
 	_, err := s.Queries.GetUserByUsername(ctx, params.Username)
 	if err == nil {
-		return nil, errors.New("El nombre de usuario ya existe")
+		return nil, errors.New("El nombre de usuario ya existe") //nombre de usuario unico
 	}
 
 	_, err = s.Queries.GetUserByEmail(ctx, params.Email)
 	if err == nil {
-		return nil, errors.New("El email ya existe")
+		return nil, errors.New("El email ya existe") //mail unico
 	}
 
 	createdRow, err := s.Queries.CreateUser(ctx, params)
@@ -74,12 +74,13 @@ type UpdateUserRequest struct {
 }
 
 func (s *UserService) UpdateUser(ctx context.Context, id int32, params UpdateUserRequest) (*UserResponse, error) {
+	//solo actualizamos los campos que vienen en el request
 	actualUser, err := s.GetUserByID(ctx, id)
 	if err != nil {
 		return nil, errors.New("usuario no encontrado")
 	}
 
-	var username, email, password sql.NullString
+	var username, email, password sql.NullString //NullString nos permite hacer los updates parciales porque tiene un campo para ver si debe actualizarse
 
 	if params.Username != nil && *params.Username != actualUser.Username {
 		userByUsername, err := s.Queries.GetUserByUsername(ctx, *params.Username)

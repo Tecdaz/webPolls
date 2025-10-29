@@ -22,13 +22,13 @@ func NewUserHandler(service *services.UserService) *userHandler {
 func (h *userHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var req services.UserRequest
 	contentType := r.Header.Get("Content-Type")
-
+	// modo json para peticiones de APIs y HTMX
 	if contentType == "application/json" {
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			RespondWithError(w, http.StatusBadRequest, "Invalid JSON payload")
 			return
 		}
-	} else {
+	} else { //envío tradicional de forms HTML
 		if err := r.ParseForm(); err != nil {
 			RespondWithError(w, http.StatusBadRequest, "Invalid form data")
 			return
@@ -42,7 +42,7 @@ func (h *userHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.service.CreateUser(r.Context(), req)
 	if err != nil {
-		RespondWithError(w, http.StatusBadRequest, err.Error()) // El servicio devuelve errores de negocio claros
+		RespondWithError(w, http.StatusBadRequest, err.Error()) 
 		return
 	}
 
