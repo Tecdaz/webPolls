@@ -189,15 +189,15 @@ document.addEventListener('DOMContentLoaded', () => {
       const password = e.target.password.value.trim();
 
       if (!username){
-        showMessage('formMessage', 'El nombre de usuario no puede estar vacío', true);
+        showMessage('El nombre de usuario no puede estar vacío', true);
         return;
       }
       if (!email){
-        showMessage('formMessage', 'El email no puede estar vacío', true);
+        showMessage('El email no puede estar vacío', true);
         return;
       }
       if (!password){
-        showMessage('formMessage', 'La contraseña no puede estar vacía', true);
+        showMessage('La contraseña no puede estar vacía', true);
         return;
       }
 
@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
         userForm.reset(); //limpiar despues del envio
       } catch (err) {
         console.error(err);
-        showMessage('formMessage', 'Error al crear usuario', true);
+        showMessage('Error al crear usuario', true);
       }
     });
   }
@@ -242,7 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
         optsContainer.innerHTML = '';
       } catch (err) {
         console.error(err);
-        showMessage('formMessage', 'Error al crear encuesta', true);
+        showMessage('Error al crear encuesta', true);
       }
     });
 
