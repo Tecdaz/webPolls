@@ -71,13 +71,3 @@ Accept: application/json
 HTTP 200
 [Asserts]
 jsonpath "$.message" == "Usuario eliminado correctamente"
-
-POST http://localhost:8080/users/create
-Content-Type: application/json
-```json
-{
-  "username": "agus",
-  "email": "agus2@gmail.com",
-  "password": "123456"
-}
-```

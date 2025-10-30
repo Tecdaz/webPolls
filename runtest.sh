@@ -19,3 +19,10 @@ echo "La aplicación se ha iniciado correctamente."
 echo "
 Ejecutando pruebas..."
 hurl --test tests/*
+
+echo "
+Creando usuario hardcodeado
+"
+curl -X POST http://localhost:8080/users/create \
+    -H "Content-Type: application/json" \
+    -d '{"username": "agus", "email": "agus2@gmail.com", "password": "123456"}'
