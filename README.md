@@ -1,12 +1,65 @@
 # WebPolls
 
-Aplicación web simple para crear y visualizar encuestas con opciones de respuesta de tipo multiple choice.
+- [Cómo empezar](#-cómo-empezar)
+- [Estructura del proyecto](#-estructura-del-proyecto)
+- [Modelos de datos](#-modelos-de-datos)
+- [Autores](#-autores)
 
-La app actualmente expone una página estática en `http://localhost:8080/` servida por el servidor en Go (`main.go`). El objetivo del dominio es permitir que un usuario cree encuestas (polls) y que cada encuesta tenga varias opciones (options) entre las cuales se pueda elegir.
+Aplicación web simple para crear y visualizar encuestas con opciones de votación de tipo multiple choice.
+
+## Cómo empezar
+
+### Script de inicio
+
+Levanta docker y ejecuta los tests
+
+Requisitos: Docker y Docker Compose
+
+1. Ejecutar el script de inicio:
+   ```bash
+   ./runtests.sh
+   ```
+
+El servidor quedará corriendo en el puerto 8080 y la base de datos en el puerto 5432.
+
+
+### Ejecución de tests manual (Opcional)
+
+Requisitos: hurl
+
+1. Ejecutar los tests:
+   ```bash
+   hurl --test tests/*
+   ```
+
+
+## Estructura del proyecto
+
+```
+├───docker-compose.yml
+├───Dockerfile
+├───generateSqlc.sh
+├───go.mod
+├───go.sum
+├───main.go
+├───runtest.sh          #Script para correr la aplicacion con docker y correr los tests
+├───db/
+│   ├───connection.go   #Conexion a la base de datos
+│   ├───queries/        #Queries utilizadas en la capa de servicio
+│   ├───schema/         #Esquema de la base de datos
+│   └───sqlc/           #Archivos generados por sqlc
+├───handlers/           #Capa de presentación de la api
+├───middleware/         #Middleware para logging
+├───services/           #Capa de negocio
+├───static/             #Archivos estaticos
+├───tests/              #Archivos de tests
+├───utils/              #Funciones utilitarias
+└───views/              #Plantillas de html (Para proxima entrega)
+```
 
 ## Modelos de datos
 
-A continuación se describe la información almacenada para cada modelo según el diagrama provisto (`user` — `poll` — `option`).
+A continuación se describe la información almacenada para cada modelo según el diagrama provisto (`user` — `poll` — `option` - `result`).
 
 ### user
 - **id**: `serial` (PK)
@@ -35,61 +88,39 @@ Relación: Un `user` puede tener muchas `poll` (1:N).
   - Texto de la opción que verá el usuario al votar.
 - **poll_id**: `int` (PK, FK → `poll.id`)
   - Encuesta a la que pertenece la opción. En el diagrama figura como parte de la clave (PK, FK), lo que sugiere una clave compuesta (`id`, `poll_id`). Alternativamente, puede modelarse como PK simple en `id` y `poll_id` como FK con índice.
-- **correct**: `boolean`
-  - Marca si la opción es la correcta (útil si la encuesta funciona como cuestionario). Para encuestas sin respuesta correcta, puede ignorarse o dejarse en `false`.
 
 Relación: Una `poll` tiene muchas `option` (1:N).
 
-## Estructura del proyecto
+### result
+- **id**: `serial` (PK)
+  - Identificador único del resultado.
+- **option_id**: `int` (FK → `option.id`)
+  - Opción seleccionada por el usuario.
+- **poll_id**: `int` (FK → `poll.id`)
+  - Encuesta a la que pertenece el resultado.
+- **user_id**: `int` (FK → `user.id`)
+  - Usuario que realizó la votacion.
 
-```
-webPolls/
-├─ main.go              # Servidor HTTP (Go)
-├─ go.mod               # Módulo de Go
-└─ static/              # Archivos estáticos (frontend)
-   ├─ index.html
-   ├─ styles.css
-   └─ logo.svg (opcional)
-├─ db/                  # Base de datos
-   ├─ schema/           # Esquema de la base de datos
-   │  └─ schema.sql     # Esquema de la base de datos
-   └─ queries/          # Consultas a la base de datos
-      ├─ users.sql     # Consultas a la tabla de usuarios
-      ├─ polls.sql     # Consultas a la tabla de encuestas
-      └─ options.sql   # Consultas a la tabla de opciones
-├─ sqlc/               # Generación de código (sqlc)
-   ├─ users.sql.go    # Código generado para la tabla de usuarios
-   ├─ polls.sql.go    # Código generado para la tabla de encuestas
-   └─ options.sql.go  # Código generado para la tabla de opciones
-```
+A parte de un id unico que identifica cada resultado, hay una clave compuesta (option_id, poll_id, user_id) que identifica cada resultado.
 
-## Ejecución local
+Relación: Un `result` pertenece a una `option`, una `poll` y un `user` (1:N).
 
-Requisitos: Go 1.20+ (o compatible)
-Requisitos: sqlc
+## Frontend
 
-0. (Opcional) Generar el esquema de la base de datos. Ya se incluye en el codigo fuente, pero en caso de no tenerlo:
-   ```bash
-   sqlc generate
-   ```
+Para acceder al frontend se debe acceder mediante el navegador a la direccion `http://localhost:8080`.
 
-1. Iniciar el modulo:
-   ```bash
-   go mod init webPolls/webPolls.com
-   ```
-2. Instalar dependencias del módulo:
-   ```bash
-   go mod tidy
-   ```
-3. Ejecutar el servidor:
-   ```bash
-   go run main.go
-   ```
-4. Abrir en el navegador:
-   - `http://localhost:8080/`
+Actualmente tenemos tres secciones:
+- Presentacion: Describre brevemente el objetivo de la aplicacion en la ruta `/presentacion.html`
+- Encuestas: Muestra todas las encuestas disponibles en la ruta `/`
+- Usuarios: Muestra todos los usuarios disponibles en la ruta `/usuarios.html`
+
+En la seccion de encuestas el usuario puede crear, eliminar y ver la lista de encuestas creadas.
+Actualmente cada poll se crea con un usuario hardcodeado que no se muestra adrede en la lista de usuarios para evitar que se elimine accidentalmente esto por que cada poll debe ser creado por un usuario y queremos implementar esta logica mediante sesiones de usuario.
+
+En la seccion de usuarios el usuario puede crear, eliminar y ver la lista de usuarios del sistema.
 
 
-## Integrantes del grupo
+##  Autores
 
 - Agustina Pereyra
 - Joaquin Loza Ciappa
