@@ -69,14 +69,22 @@ func (s *PollService) CreatePoll(ctx context.Context, params PollRequest) (*Poll
 	// Crear opciones asociadas
 	var options []db.Option
 	for _, optionContent := range params.Options {
-		option, err := qtx.CreateOption(ctx, db.CreateOptionParams{
-			Content: optionContent.Content,
-			PollID:  poll.ID,
-		})
-		if err != nil {
-			return nil, err
+		if optionContent.Content != "" {
+
+			option, err := qtx.CreateOption(ctx, db.CreateOptionParams{
+				Content: optionContent.Content,
+				PollID:  poll.ID,
+			})
+			if err != nil {
+				return nil, err
+			}
+			options = append(options, option)
 		}
-		options = append(options, option)
+
+	}
+
+	if len(options) < 2 {
+		return nil, errors.New("deben ser al menos 2 opciones")
 	}
 
 	if err := tx.Commit(); err != nil {
