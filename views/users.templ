@@ -18,12 +18,14 @@ templ Users(users []services.UserResponse) {
 templ UserForm() {
 	<div class="createPollDiv">
 		<h2>Crear usuario</h2>
-		<form hx-post="/users/create" hx-on:reset-form="this.reset()" hx-target="#users-list" hx-swap="outerHTML">
+		<form hx-post="/users/create" hx-on::after-request="handleResponseForms(event)">
 			@FormField("email", "email", "email", "user@gmail.com", "Email")
 			@FormField("text", "username", "username", "user123", "Username")
 			@FormField("password", "password", "password", "Contraseña", "Contraseña")
 			<button type="submit">Crear Usuario</button>
 		</form>
+
+		
 	</div>
 }
 
@@ -37,11 +39,13 @@ templ FormField(typee, name, id, placeholder, content string) {
 templ UserList(users []services.UserResponse) {
 
 	<div id="users-list" class="pollsContainer">
-        if len(users) == 0 {
+        if len(users) == 1 {
                 <p>No hay usuarios</p>
             }
 		for _, user := range users {
-			@UserCard(user)
+			if user.Id != 1 {
+				@UserCard(user)
+			}
 		}
 	</div>
 }

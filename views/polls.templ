@@ -18,18 +18,18 @@ templ Polls(polls []*services.PollResponse) {
 templ PollForm() {
 	<div class="createPollDiv">
 		<h2>Crear Encuesta</h2>
-		<form hx-post="/polls/create" hx-on:reset-form="this.reset()" hx-target="#polls-list" hx-swap="outerHTML">
+		<form hx-post="/polls/create" hx-on::after-request="handleResponseForms(event)">
 			@FormField("text", "question", "question", "¿Cual es tu deporte favorito?", "Pregunta")
-			@FormField("number", "user-id", "user-id", "Id del usuario", "Id del usuario")
-			<div id="optsContainer">
-				for i := 1; i <= 4; i++ {
-					@FormField("text", "options", fmt.Sprintf("option%d", i), fmt.Sprintf("Opción %d", i), fmt.Sprintf("Opción %d", i))
-				}
-			</div>
+			<input type="number" name="user-id" id="user-id" value="1" hidden/>
+			<div id="optsContainer" class="optsContainer"></div>
+
+			<button type="button" id="addOptBtn" onclick="handleClickAddOptBtn(event)">Agregar opción</button>
 			<button type="submit">Crear Encuesta</button>
 		</form>
 	</div>
 }
+
+
 
 templ PollList(polls []*services.PollResponse) {
 

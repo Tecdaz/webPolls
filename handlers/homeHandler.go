@@ -24,7 +24,7 @@ func (h *homeHandler) GetHome(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := views.Index(views.Home(), "Webpolls").Render(r.Context(), w)
+	err := views.Layout(views.Home(), "Webpolls").Render(r.Context(), w)
 	if err != nil {
 		RespondWithError(w, http.StatusInternalServerError, err.Error())
 		return

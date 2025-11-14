@@ -23,56 +23,34 @@ func NewPollHandler(service *services.PollService) *PollHandler {
 
 func (h *PollHandler) CreatePoll(w http.ResponseWriter, r *http.Request) {
 	var req services.PollRequest
-	contentType := r.Header.Get("Content-Type")
-	if contentType == "application/json" {
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			RespondWithError(w, http.StatusBadRequest, "Cuerpo json invalido")
-			return
-		}
-	} else {
-		if err := r.ParseForm(); err != nil {
-			RespondWithError(w, http.StatusBadRequest, "Cuerpo forma invalido")
-			return
-		}
-		var options []services.OptionRequest
-		formOptions := r.Form["options"]
-		for _, opt := range formOptions {
-			options = append(options, services.OptionRequest{Content: opt})
-		}
-		userId, err := utils.ConvertTo32(r.FormValue("user-id"))
-		if err != nil {
-			RespondWithError(w, http.StatusBadRequest, err.Error())
-		}
-		req = services.PollRequest{
-			Question: r.FormValue("question"),
-			UserID:   userId,
-			Options:  options,
-		}
+
+	if err := r.ParseForm(); err != nil {
+		RespondWithError(w, http.StatusBadRequest, "Cuerpo forma invalido")
+		return
+	}
+	var options []services.OptionRequest
+	formOptions := r.Form["options"]
+	for _, opt := range formOptions {
+		options = append(options, services.OptionRequest{Content: opt})
+	}
+	userId, err := utils.ConvertTo32(r.FormValue("user-id"))
+	if err != nil {
+		RespondWithError(w, http.StatusBadRequest, err.Error())
 	}
 
-	data, err := h.service.CreatePoll(r.Context(), req)
+	req = services.PollRequest{
+		Question: r.FormValue("question"),
+		UserID:   userId,
+		Options:  options,
+	}
+
+	_, err = h.service.CreatePoll(r.Context(), req)
 	if err != nil {
 		RespondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	if contentType == "application/json" {
-		RespondWithData(w, http.StatusCreated, data, "Encuesta creada correctamente")
-		return
-	}
-
-	polls, err := h.service.GetPolls(r.Context())
-	if err != nil {
-		RespondWithError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	w.Header().Set("HX-Trigger", "reset-form")
-	w.WriteHeader(http.StatusCreated)
-	err = views.PollList(polls).Render(r.Context(), w)
-	if err != nil {
-		RespondWithError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
+	http.Redirect(w, r, "/polls", http.StatusSeeOther)
 }
 
 func (h *PollHandler) DeletePoll(w http.ResponseWriter, r *http.Request) {
@@ -139,15 +117,6 @@ func (h *PollHandler) GetPolls(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//API
-	acceptType := r.Header.Get("Accept")
-	if acceptType == "application/json" {
-		log.Printf("Polls retrieved: %+v", polls) // Agregar log para debug
-		RespondWithData(w, http.StatusOK, polls, "Encuestas obtenidas correctamente")
-		return
-	}
-
-	//WEB
 	if r.Header.Get("HX-Request") == "true" {
 		err := views.Polls(polls).Render(r.Context(), w)
 		if err != nil {
@@ -157,12 +126,11 @@ func (h *PollHandler) GetPolls(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = views.Index(views.Polls(polls), "Webpolls - Polls").Render(r.Context(), w)
+	err = views.Layout(views.Polls(polls), "Webpolls - Polls").Render(r.Context(), w)
 	if err != nil {
 		RespondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	return
 }
 
 func (h *PollHandler) UpdateOption(w http.ResponseWriter, r *http.Request) {

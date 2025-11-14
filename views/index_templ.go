@@ -10,7 +10,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import "webpolls/components"
 
-func Index(content templ.Component, title string) templ.Component {
+func Layout(content templ.Component, title string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -38,13 +38,13 @@ func Index(content templ.Component, title string) templ.Component {
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/index.templ`, Line: 11, Col: 24}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/index.templ`, Line: 11, Col: 16}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</title><link rel=\"stylesheet\" href=\"/static/styles.css\"><meta name=\"description\" content=\"Pagina para crear polls y votar\"><script src=\"https://cdn.jsdelivr.net/npm/htmx.org@2.0.7/dist/htmx.min.js\" integrity=\"sha384-ZBXiYtYQ6hJ2Y0ZNoYuI+Nq5MqWBr+chMrS/RkXpNzQCApHEhOt2aY8EJgqwHLkJ\" crossorigin=\"anonymous\"></script></head><body hx-boost=\"true\" hx-target=\"#main-content\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</title><link rel=\"stylesheet\" href=\"/static/styles.css\"><link href=\"https://fonts.googleapis.com/icon?family=Material+Icons\" rel=\"stylesheet\"><meta name=\"description\" content=\"Pagina para crear polls y votar\"><script src=\"https://cdn.jsdelivr.net/npm/htmx.org@2.0.7/dist/htmx.min.js\" integrity=\"sha384-ZBXiYtYQ6hJ2Y0ZNoYuI+Nq5MqWBr+chMrS/RkXpNzQCApHEhOt2aY8EJgqwHLkJ\" crossorigin=\"anonymous\"></script></head><body hx-boost=\"true\" hx-target=\"#main-content\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -60,7 +60,7 @@ func Index(content templ.Component, title string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</main></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</main><div id=\"messagesContainer\" class=\"messagesContainer\" aria-live=\"polite\" aria-atomic=\"true\"></div><script>\n\t\tfunction handleResponseForms(event) {\n\t\t\tconsole.log(event)\n\t\t\tif (event.detail.failed) {\n\t\t\t\tconst response = JSON.parse(event.detail.xhr.response)\n\t\t\t\tconst messagesContainer = document.getElementById(\"messagesContainer\")\n\t\t\t\tconst message = response.error\n\t\t\t\tconst messageDiv = document.createElement('div')\n  \n\t\t\t\t//asignamos clases dependiendo si es error o exito para los estilos\n\t\t\t\tmessageDiv.className = 'message error';\n\t\t\t\tmessageDiv.textContent = message;\n\t\t\t\tmessagesContainer.appendChild(messageDiv); //insertamos en DOM para hacer visible el mensaje en la pagina\n\n\t\t\t\trequestAnimationFrame(() => {\n\t\t\t\t\tmessageDiv.classList.add('visible');\n\t\t\t\t})\n\t\t\t\tsetTimeout(()=>{ //animaciones de entrada y salida\n\t\t\t\t\tmessageDiv.classList.remove('visible'); \n\t\t\t\t\tmessageDiv.addEventListener('transitionend', () => messageDiv.remove() , { once: true });\n\t\t\t\t}, 3000);\n\t\t\t}\n\t\t}\n\t</script><script>\n\t\thandleClickAddOptBtn = function(event) {\n\t\t\tconst addOptBtn = document.getElementById(\"addOptBtn\");\n\t\t\t\n\t\t\tconst optsContainer = document.getElementById(\"optsContainer\");\n\t\t\tif (document.querySelectorAll('input[name=\"options\"]').length >= 4) {\n\t\t\t\talert(\"Máximo 4 opciones permitidas\");\n\t\t\t\treturn;\n\t\t\t}\n\n\t\t\tconst optDiv = document.createElement(\"div\");\n\t\t\toptDiv.classList.add(\"opt\");\n\n\t\t\toptDiv.innerHTML = `\n\t\t\t\t<label>Opción</label>\n\t\t\t\t<div class=\"optInput\">\n\t\t\t\t\t<input type=\"text\" name=\"options\" placeholder=\"Escribe una opción...\" required>\n\t\t\t\t\t<i class=\"material-icons deleteOptBtn\">delete</i>\n\t\t\t\t</div>\n\t\t\t`;\n\n\t\t\toptDiv.querySelector(\".deleteOptBtn\").addEventListener(\"click\", () => optDiv.remove());\n\n\t\t\toptsContainer.appendChild(optDiv);\n\t\t\t\n\t\t}\n</script></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
