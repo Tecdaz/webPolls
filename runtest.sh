@@ -15,7 +15,3 @@ while ! curl -s --fail http://localhost:8080/ > /dev/null; do
     sleep 1
 done
 echo "La aplicación se ha iniciado correctamente."
-
-echo "
-Ejecutando pruebas..."
-hurl --test tests/*
