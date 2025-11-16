@@ -8,7 +8,7 @@ COPY . .
 RUN go mod download
 
 # Compilar binario
-RUN sh build.sh
+RUN go build -o ./bin/webpolls ./main.go
 
 ## ---- Runtime stage ----
 FROM alpine:latest

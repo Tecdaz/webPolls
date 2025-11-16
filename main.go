@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"log"
 	"net/http"
 	"webpolls/db"
@@ -19,16 +18,6 @@ func main() {
 
 	// Inyección de dependencias
 	queries := sqlc.New(dbConn)
-
-	// Crear usuario hardcodeado
-	_, err := queries.CreateUser(context.Background(), sqlc.CreateUserParams{
-		Username: "agus",
-		Email:    "agus2@gmail.com",
-		Password: "123456",
-	})
-	if err != nil {
-		log.Fatal("Error al crear usuario hardcodeado:", err)
-	}
 
 	// Inicializar servicios
 	userService := services.NewUserService(queries)
