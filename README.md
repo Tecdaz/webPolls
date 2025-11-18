@@ -1,12 +1,57 @@
 # WebPolls
 
-Aplicación web simple para crear y visualizar encuestas con opciones de respuesta de tipo multiple choice.
+- [Cómo empezar](#-cómo-empezar)
+- [Estructura del proyecto](#-estructura-del-proyecto)
+- [Modelos de datos](#-modelos-de-datos)
+- [Autores](#-autores)
 
-La app actualmente expone una página estática en `http://localhost:8080/` servida por el servidor en Go (`main.go`). El objetivo del dominio es permitir que un usuario cree encuestas (polls) y que cada encuesta tenga varias opciones (options) entre las cuales se pueda elegir.
+Aplicación web simple para crear y visualizar encuestas con opciones de votación de tipo multiple choice.
+
+## Cómo empezar
+
+### Script de inicio
+
+Levanta docker, construye la imagen y popula la base de datos.
+
+Requisitos: Docker, Docker Compose y Make
+
+1. Ejecutar el comando principal:
+   ```bash
+   make run
+   ```
+
+El servidor quedará corriendo en el puerto 8080 y la base de datos en el puerto 5432.
+
+
+## Estructura del proyecto
+
+```
+├───docker-compose.yml
+├───Dockerfile
+├───Makefile            # Archivo de comandos para facilitar tareas
+├───go.mod
+├───go.sum
+├───main.go
+├───seed.sh             # Script para popular la base de datos
+├───sqlc.yaml           # Configuración de sqlc
+├───components/         # Componentes reutilizables (Templ)
+├───db/
+│   ├───connection.go   # Conexion a la base de datos
+│   ├───queries/        # Queries utilizadas en la capa de servicio
+│   ├───schema/         # Esquema de la base de datos
+│   └───sqlc/           # Archivos generados por sqlc
+├───handlers/           # Capa de presentación de la api
+├───middleware/         # Middleware para logging
+├───services/           # Capa de negocio
+├───static/             # Archivos estaticos
+├───tests/              # Archivos de tests
+├───utils/              # Funciones utilitarias
+└───views/              # Plantillas de html
+```
 
 ## Modelos de datos
 
-A continuación se describe la información almacenada para cada modelo según el diagrama provisto (`user` — `poll` — `option`).
+A continuación se describe la información almacenada para cada modelo según el diagrama provisto (`user` — `poll` — `option` - `result`).
 
 ### user
 - **id**: `serial` (PK)
@@ -35,126 +80,45 @@ Relación: Un `user` puede tener muchas `poll` (1:N).
   - Texto de la opción que verá el usuario al votar.
 - **poll_id**: `int` (PK, FK → `poll.id`)
   - Encuesta a la que pertenece la opción. En el diagrama figura como parte de la clave (PK, FK), lo que sugiere una clave compuesta (`id`, `poll_id`). Alternativamente, puede modelarse como PK simple en `id` y `poll_id` como FK con índice.
-- **correct**: `boolean`
-  - Marca si la opción es la correcta (útil si la encuesta funciona como cuestionario). Para encuestas sin respuesta correcta, puede ignorarse o dejarse en `false`.
 
 Relación: Una `poll` tiene muchas `option` (1:N).
 
-## Estructura del proyecto
+### result
+- **id**: `serial` (PK)
+  - Identificador único del resultado.
+- **option_id**: `int` (FK → `option.id`)
+  - Opción seleccionada por el usuario.
+- **poll_id**: `int` (FK → `poll.id`)
+  - Encuesta a la que pertenece el resultado.
+- **user_id**: `int` (FK → `user.id`)
+  - Usuario que realizó la votacion.
 
-```
-webPolls/
-├─ main.go              # Servidor HTTP (Go)
-├─ go.mod               # Módulo de Go
-├─ DockerFile         
-├─ Makefile           
-└─ static/              # Archivos estáticos (frontend)
-   ├─ styles.css
-   └─ logo.svg (opcional)
-├─ db/                  # Base de datos
-   ├─ schema/           # Esquema de la base de datos
-   │  └─ schema.sql     # Esquema de la base de datos
-   └─ queries/          # Consultas a la base de datos
-      ├─ users.sql     # Consultas a la tabla de usuarios
-      ├─ polls.sql     # Consultas a la tabla de encuestas
-      └─ options.sql   # Consultas a la tabla de opciones
-├─ sqlc/               # Generación de código (sqlc)
-   ├─ users.sql.go    # Código generado para la tabla de usuarios
-   ├─ polls.sql.go    # Código generado para la tabla de encuestas
-   └─ options.sql.go  # Código generado para la tabla de opciones
-├─ utils/              # Utilidades
-├─ components/         # Componentes reutilizables        
-├─ views/              # Paginas con templ
-   ├─ home.templ
-   ├─ index.templ 
-   ├─ polls.templ 
-   ├─ users.templ   
-├─ handlers/            # Handlers de rutas
-   ├─ homeHandler.go
-   ├─ pollsHandler.go 
-   ├─ userHandler.go
-├─ services/            # Logica de negocio
-   ├─ userHandler.go
-   ├─ userHandler.go 
-```
+A parte de un id unico que identifica cada resultado, hay una clave compuesta (option_id, poll_id, user_id) que identifica cada resultado.
 
-## Ejecución local
+Relación: Un `result` pertenece a una `option`, una `poll` y un `user` (1:N).
 
-### Requisitos
-- Docker y Docker Compose
-- Make
-- Go 1.20+ (opcional, para desarrollo local)
-- sqlc (opcional, para regenerar código)
+## Frontend
 
-### Comandos disponibles
+El frontend de la aplicación está construido utilizando **Templ**, una librería de Go para generar HTML de manera eficiente y tipada.
 
-Para ver todos los comandos disponibles:
-```bash
-make help
-```
+Para acceder al frontend se debe acceder mediante el navegador a la direccion `http://localhost:8080`.
 
-### Ejecución completa con Docker
+### Estructura del Frontend
 
-1. **Ejecutar la aplicación completa** (recomendado):
-   ```bash
-   make run
-   ```
-   Este comando limpia contenedores anteriores, construye la imagen, levanta los servicios y crea datos de prueba.
+- **components/**: Contiene componentes reutilizables de la interfaz (ej: barra de navegación).
+- **views/**: Contiene las páginas principales de la aplicación.
 
-2. **Abrir en el navegador**:
-   - `http://localhost:8080/`
+### Secciones
 
-### Comandos útiles
+Actualmente tenemos tres secciones principales:
+- **Inicio**: Página de bienvenida en la ruta `/`.
+- **Encuestas**: Muestra todas las encuestas disponibles en la ruta `/polls`. Permite crear, eliminar y ver encuestas.
+- **Usuarios**: Muestra todos los usuarios disponibles en la ruta `/users`. Permite crear y eliminar usuarios.
 
-- **Instalar dependencias de Go**:
-  ```bash
-  make install
-  ```
-
-- **Construir solo la imagen Docker**:
-  ```bash
-  make docker-build
-  ```
-
-- **Levantar contenedores**:
-  ```bash
-  make docker-up
-  ```
-
-- **Bajar contenedores**:
-  ```bash
-  make docker-down
-  ```
-
-- **Ver logs de la aplicación**:
-  ```bash
-  make logs
-  ```
-
-- **Reiniciar la aplicación**:
-  ```bash
-  make restart
-  ```
-
-- **Generar código SQLC**:
-  ```bash
-  make sqlc
-  ```
-
-- **Crear datos de prueba**:
-  ```bash
-  make seed
-  ```
-
-### Ejecución local sin Docker
-
-Para desarrollo local (requiere base de datos PostgreSQL ejecutándose):
-```bash
-make run-local
-```
+Nota: Actualmente cada poll se crea con un usuario hardcodeado para fines de demostración, pendiente de implementar autenticación completa.
 
 
-## Integrantes del grupo
+##  Autores
 
 - Agustina Pereyra
 - Joaquin Loza Ciappa
