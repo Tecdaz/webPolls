@@ -46,8 +46,9 @@ Relación: Una `poll` tiene muchas `option` (1:N).
 webPolls/
 ├─ main.go              # Servidor HTTP (Go)
 ├─ go.mod               # Módulo de Go
+├─ DockerFile         
+├─ Makefile           
 └─ static/              # Archivos estáticos (frontend)
-   ├─ index.html
    ├─ styles.css
    └─ logo.svg (opcional)
 ├─ db/                  # Base de datos
@@ -61,32 +62,96 @@ webPolls/
    ├─ users.sql.go    # Código generado para la tabla de usuarios
    ├─ polls.sql.go    # Código generado para la tabla de encuestas
    └─ options.sql.go  # Código generado para la tabla de opciones
+├─ utils/              # Utilidades
+├─ components/         # Componentes reutilizables        
+├─ views/              # Paginas con templ
+   ├─ home.templ
+   ├─ index.templ 
+   ├─ polls.templ 
+   ├─ users.templ   
+├─ handlers/            # Handlers de rutas
+   ├─ homeHandler.go
+   ├─ pollsHandler.go 
+   ├─ userHandler.go
+├─ services/            # Logica de negocio
+   ├─ userHandler.go
+   ├─ userHandler.go 
 ```
 
 ## Ejecución local
 
-Requisitos: Go 1.20+ (o compatible)
-Requisitos: sqlc
+### Requisitos
+- Docker y Docker Compose
+- Make
+- Go 1.20+ (opcional, para desarrollo local)
+- sqlc (opcional, para regenerar código)
 
-0. (Opcional) Generar el esquema de la base de datos. Ya se incluye en el codigo fuente, pero en caso de no tenerlo:
-   ```bash
-   sqlc generate
-   ```
+### Comandos disponibles
 
-1. Iniciar el modulo:
+Para ver todos los comandos disponibles:
+```bash
+make help
+```
+
+### Ejecución completa con Docker
+
+1. **Ejecutar la aplicación completa** (recomendado):
    ```bash
-   go mod init webPolls/webPolls.com
+   make run
    ```
-2. Instalar dependencias del módulo:
-   ```bash
-   go mod tidy
-   ```
-3. Ejecutar el servidor:
-   ```bash
-   go run main.go
-   ```
-4. Abrir en el navegador:
+   Este comando limpia contenedores anteriores, construye la imagen, levanta los servicios y crea datos de prueba.
+
+2. **Abrir en el navegador**:
    - `http://localhost:8080/`
+
+### Comandos útiles
+
+- **Instalar dependencias de Go**:
+  ```bash
+  make install
+  ```
+
+- **Construir solo la imagen Docker**:
+  ```bash
+  make docker-build
+  ```
+
+- **Levantar contenedores**:
+  ```bash
+  make docker-up
+  ```
+
+- **Bajar contenedores**:
+  ```bash
+  make docker-down
+  ```
+
+- **Ver logs de la aplicación**:
+  ```bash
+  make logs
+  ```
+
+- **Reiniciar la aplicación**:
+  ```bash
+  make restart
+  ```
+
+- **Generar código SQLC**:
+  ```bash
+  make sqlc
+  ```
+
+- **Crear datos de prueba**:
+  ```bash
+  make seed
+  ```
+
+### Ejecución local sin Docker
+
+Para desarrollo local (requiere base de datos PostgreSQL ejecutándose):
+```bash
+make run-local
+```
 
 
 ## Integrantes del grupo
