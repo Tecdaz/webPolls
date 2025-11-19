@@ -7,7 +7,7 @@ templ Users(users []services.UserResponse) {
     <h1 class="h1UnderHeader">Gestion de usuarios</h1>
     <div class="gridLayout">
         @UserForm()
-        <div class="pollsSection">
+        <div class="pollsSection container">
             <h2>Lista de usuarios</h2>
             @UserList(users)
         </div>
@@ -16,7 +16,7 @@ templ Users(users []services.UserResponse) {
 }
 
 templ UserForm() {
-	<div class="createPollDiv">
+	<div class="createPollDiv container">
 		<h2>Crear usuario</h2>
 		<form hx-post="/users/create" hx-on::after-request="handleResponseForms(event)">
 			@FormField("email", "email", "email", "user@gmail.com", "Email")

@@ -7,7 +7,7 @@ templ Polls(polls []*services.PollResponse) {
 		<h1 class="h1UnderHeader">Gestion de Encuestas</h1>
 		<div class="gridLayout">
 		    @PollForm()
-            <div class="pollsSection">
+            <div class="pollsSection container">
                 <h2>Lista de Encuestas</h2>
                 @PollList(polls)
             </div>
@@ -16,7 +16,7 @@ templ Polls(polls []*services.PollResponse) {
 }
 
 templ PollForm() {
-	<div class="createPollDiv">
+	<div class="createPollDiv container">
 		<h2>Crear Encuesta</h2>
 		<form hx-post="/polls/create" hx-on::after-request="handleResponseForms(event)">
 			@FormField("text", "question", "question", "¿Cual es tu deporte favorito?", "Pregunta")
