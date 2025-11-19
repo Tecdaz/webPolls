@@ -51,7 +51,7 @@ templ PollCard(poll *services.PollResponse) {
 				<li>{ option.Content }</li>
 			}
 		</ul>
-		<button class="deleteBtn" hx-delete={ fmt.Sprintf("/polls/%d", poll.ID) } hx-target="#polls-list" hx-swap="outerHTML">
+		<button class="deleteBtn" hx-delete={ fmt.Sprintf("/polls/%d", poll.ID) } hx-target="closest .singlePollDiv" hx-swap="outerHTML" >
 			Eliminar
 		</button>
 	</div>

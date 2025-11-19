@@ -54,7 +54,7 @@ templ UserCard(user services.UserResponse) {
 	<div class="singlePollDiv">
 		<h3>{ user.Username }</h3>
 		<p>{ user.Email }</p>
-		<button class="deleteBtn" hx-delete={ fmt.Sprintf("/users/%d", user.Id) } hx-target="#users-list" hx-swap="outerHTML">
+		<button class="deleteBtn" hx-delete={ fmt.Sprintf("/users/%d", user.Id) } hx-target="closest .singlePollDiv" hx-swap="outerHTML">
             Eliminar
         </button>
 	</div>
