@@ -18,7 +18,7 @@ templ Polls(polls []*services.PollResponse) {
 templ PollForm() {
 	<div class="createPollDiv container">
 		<h2>Crear Encuesta</h2>
-		<form hx-post="/polls/create" hx-on::after-request="handleResponseForms(event)">
+		<form hx-post="/polls/create" hx-target="#polls-list" hx-on::after-request="handleResponseForms(event)" hx-on::after-settled="this.reset()">
 			@FormField("text", "question", "question", "¿Cual es tu deporte favorito?", "Pregunta")
 			<input type="number" name="user-id" id="user-id" value="1" hidden/>
 			<div id="optsContainer" class="optsContainer"></div>

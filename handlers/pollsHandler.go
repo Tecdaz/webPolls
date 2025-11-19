@@ -50,7 +50,14 @@ func (h *PollHandler) CreatePoll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/polls", http.StatusSeeOther)
+	//se llama a esto para traer todas las polls y mandarlas al renderizado
+	polls, err := h.service.GetPolls(r.Context())
+	if err != nil {
+		RespondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	views.Polls(polls).Render(r.Context(), w)
 }
 
 func (h *PollHandler) DeletePoll(w http.ResponseWriter, r *http.Request) {

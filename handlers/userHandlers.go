@@ -39,7 +39,14 @@ func (h *userHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/users", http.StatusSeeOther)
+	//nuevamente llamo a esto para traer los usuarios y renderizarlos
+	users, err := h.service.GetUsers(r.Context())
+	if err != nil {
+		RespondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	views.Users(users).Render(r.Context(), w)
 }
 
 func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
