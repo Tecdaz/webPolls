@@ -17,7 +17,7 @@ templ Users(users []services.UserResponse) {
 templ UserForm() {
 	<div class="createPollDiv container">
 		<h2>Crear usuario</h2>
-		<form hx-post="/users/create" hx-target="#users-list" hx-on::after-request="handleResponseForms(event, this)" hx-swap="outerHTML">
+		<form hx-post="/users/create" hx-target="#users-list" hx-on::after-request="if(event.detail.successful && event.detail.elt === this && !event.detail.xhr.getResponseHeader('HX-Reswap')) this.reset()" hx-swap="outerHTML">
 			@FormField("email", "email", "email", "user@gmail.com", "Email")
 			@FormField("text", "username", "username", "user123", "Username")
 			@FormField("password", "password", "password", "Contraseña", "Contraseña")

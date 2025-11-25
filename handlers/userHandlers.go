@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"webpolls/components"
 	"webpolls/services"
 	"webpolls/utils"
 	"webpolls/views"
@@ -24,7 +25,8 @@ func (h *userHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var req services.UserRequest
 
 	if err := r.ParseForm(); err != nil {
-		RespondWithError(w, http.StatusBadRequest, "Invalid form data")
+		w.Header().Set("HX-Reswap", "none")
+		components.Toast("Invalid form data", true).Render(r.Context(), w)
 		return
 	}
 	req = services.UserRequest{
@@ -35,22 +37,26 @@ func (h *userHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	_, err := h.service.CreateUser(r.Context(), req)
 	if err != nil {
-		RespondWithError(w, http.StatusBadRequest, err.Error())
+		w.Header().Set("HX-Reswap", "none")
+		components.Toast(err.Error(), true).Render(r.Context(), w)
 		return
 	}
 
 	//nuevamente llamo a esto para traer los usuarios y renderizarlos
 	users, err := h.service.GetUsers(r.Context())
 	if err != nil {
-		RespondWithError(w, http.StatusInternalServerError, err.Error())
+		w.Header().Set("HX-Reswap", "none")
+		components.Toast(err.Error(), true).Render(r.Context(), w)
 		return
 	}
 
 	err = views.UserList(users).Render(r.Context(), w)
 	if err != nil {
-		RespondWithError(w, http.StatusInternalServerError, err.Error())
+		w.Header().Set("HX-Reswap", "none")
+		components.Toast(err.Error(), true).Render(r.Context(), w)
 		return
 	}
+	components.Toast("Usuario creado correctamente", false).Render(r.Context(), w)
 }
 
 func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {

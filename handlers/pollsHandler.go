@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"webpolls/components"
 	"webpolls/views"
 
 	"webpolls/services"
@@ -25,7 +26,8 @@ func (h *PollHandler) CreatePoll(w http.ResponseWriter, r *http.Request) {
 	var req services.PollRequest
 
 	if err := r.ParseForm(); err != nil {
-		RespondWithError(w, http.StatusBadRequest, "Cuerpo forma invalido")
+		w.Header().Set("HX-Reswap", "none")
+		components.Toast("Cuerpo forma invalido", true).Render(r.Context(), w)
 		return
 	}
 	var options []services.OptionRequest
@@ -35,7 +37,9 @@ func (h *PollHandler) CreatePoll(w http.ResponseWriter, r *http.Request) {
 	}
 	userId, err := utils.ConvertTo32(r.FormValue("user-id"))
 	if err != nil {
-		RespondWithError(w, http.StatusBadRequest, err.Error())
+		w.Header().Set("HX-Reswap", "none")
+		components.Toast(err.Error(), true).Render(r.Context(), w)
+		return
 	}
 
 	req = services.PollRequest{
@@ -46,22 +50,26 @@ func (h *PollHandler) CreatePoll(w http.ResponseWriter, r *http.Request) {
 
 	_, err = h.service.CreatePoll(r.Context(), req)
 	if err != nil {
-		RespondWithError(w, http.StatusBadRequest, err.Error())
+		w.Header().Set("HX-Reswap", "none")
+		components.Toast(err.Error(), true).Render(r.Context(), w)
 		return
 	}
 
 	//se llama a esto para traer todas las polls y mandarlas al renderizado
 	polls, err := h.service.GetPolls(r.Context())
 	if err != nil {
-		RespondWithError(w, http.StatusInternalServerError, err.Error())
+		w.Header().Set("HX-Reswap", "none")
+		components.Toast(err.Error(), true).Render(r.Context(), w)
 		return
 	}
 
 	err = views.PollList(polls).Render(r.Context(), w)
 	if err != nil {
-		RespondWithError(w, http.StatusInternalServerError, err.Error())
+		w.Header().Set("HX-Reswap", "none")
+		components.Toast(err.Error(), true).Render(r.Context(), w)
 		return
 	}
+	components.Toast("Encuesta creada correctamente", false).Render(r.Context(), w)
 }
 
 func (h *PollHandler) DeletePoll(w http.ResponseWriter, r *http.Request) {
@@ -189,4 +197,17 @@ func (h *PollHandler) DeleteOption(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("Option %d deleted successfully", id)
 	RespondWithData(w, http.StatusOK, nil, "Opción eliminada correctamente")
+}
+
+func (h *PollHandler) GetPollOptionInput(w http.ResponseWriter, r *http.Request) {
+	countStr := r.URL.Query().Get("count")
+	count, _ := utils.ConvertTo32(countStr)
+
+	if count >= 4 {
+		w.Header().Set("HX-Reswap", "none")
+		components.Toast("Máximo 4 opciones permitidas", true).Render(r.Context(), w)
+		return
+	}
+
+	views.PollOptionInput().Render(r.Context(), w)
 }

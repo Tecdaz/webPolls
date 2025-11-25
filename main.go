@@ -48,6 +48,7 @@ func main() {
 	mux.HandleFunc("GET /polls", pollHandler.GetPolls)
 	mux.HandleFunc("PUT /options/{id}", pollHandler.UpdateOption)
 	mux.HandleFunc("DELETE /polls/{poll_id}/options/{id}", pollHandler.DeleteOption)
+	mux.HandleFunc("GET /polls/components/option", pollHandler.GetPollOptionInput)
 
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 

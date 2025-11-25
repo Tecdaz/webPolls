@@ -17,13 +17,23 @@ templ Polls(polls []*services.PollResponse) {
 templ PollForm() {
 	<div class="createPollDiv container">
 		<h2>Crear Encuesta</h2>
-		<form hx-post="/polls/create" hx-target="#polls-list" hx-on::after-request="handleResponseForms(event, this)" hx-swap="outerHTML">
+		<form hx-post="/polls/create" hx-target="#polls-list" hx-on::after-request="if(event.detail.successful && event.detail.elt === this && !event.detail.xhr.getResponseHeader('HX-Reswap')) this.reset()" hx-swap="outerHTML">
 			@FormField("text", "question", "question", "¿Cual es tu deporte favorito?", "Pregunta")
 			<input type="number" name="user-id" id="user-id" value="1" hidden/>
 			<div id="optsContainer" class="optsContainer"></div>
-			<button type="button" id="addOptBtn" onclick="handleClickAddOptBtn(event)">Agregar opción</button>
+			<button type="button" id="addOptBtn" hx-get="/polls/components/option" hx-target="#optsContainer" hx-swap="beforeend" hx-vals='js:{"count": document.querySelectorAll("input[name=\"options\"]").length}'>Agregar opción</button>
 			<button type="submit">Crear Encuesta</button>
 		</form>
+	</div>
+}
+
+templ PollOptionInput() {
+	<div class="opt">
+		<label>Opción</label>
+		<div class="optInput">
+			<input type="text" name="options" placeholder="Escribe una opción..." required/>
+			<i class="material-icons deleteOptBtn" onclick="this.closest('.opt').remove()">delete</i>
+		</div>
 	</div>
 }
 

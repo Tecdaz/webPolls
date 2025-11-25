@@ -1,0 +1,12 @@
+package components
+
+templ Toast(message string, isError bool) {
+	<div id="messagesContainer" class="messagesContainer" aria-live="polite" aria-atomic="true" hx-swap-oob="beforeend">
+		<div
+			class={ "message", templ.KV("error", isError), templ.KV("success", !isError), "visible" }
+			hx-on:htmx:load="setTimeout(() => { this.classList.remove('visible'); setTimeout(() => this.remove(), 300) }, 3000)"
+		>
+			{ message }
+		</div>
+	</div>
+}
