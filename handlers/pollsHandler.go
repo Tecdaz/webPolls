@@ -27,6 +27,7 @@ func (h *PollHandler) CreatePoll(w http.ResponseWriter, r *http.Request) {
 
 	if err := r.ParseForm(); err != nil {
 		w.Header().Set("HX-Reswap", "none")
+		w.WriteHeader(http.StatusBadRequest)
 		components.Toast("Cuerpo forma invalido", true).Render(r.Context(), w)
 		return
 	}
@@ -38,6 +39,7 @@ func (h *PollHandler) CreatePoll(w http.ResponseWriter, r *http.Request) {
 	userId, err := utils.ConvertTo32(r.FormValue("user-id"))
 	if err != nil {
 		w.Header().Set("HX-Reswap", "none")
+		w.WriteHeader(http.StatusBadRequest)
 		components.Toast(err.Error(), true).Render(r.Context(), w)
 		return
 	}
@@ -51,6 +53,7 @@ func (h *PollHandler) CreatePoll(w http.ResponseWriter, r *http.Request) {
 	_, err = h.service.CreatePoll(r.Context(), req)
 	if err != nil {
 		w.Header().Set("HX-Reswap", "none")
+		w.WriteHeader(http.StatusBadRequest)
 		components.Toast(err.Error(), true).Render(r.Context(), w)
 		return
 	}
@@ -59,6 +62,7 @@ func (h *PollHandler) CreatePoll(w http.ResponseWriter, r *http.Request) {
 	polls, err := h.service.GetPolls(r.Context())
 	if err != nil {
 		w.Header().Set("HX-Reswap", "none")
+		w.WriteHeader(http.StatusInternalServerError)
 		components.Toast(err.Error(), true).Render(r.Context(), w)
 		return
 	}
@@ -66,6 +70,7 @@ func (h *PollHandler) CreatePoll(w http.ResponseWriter, r *http.Request) {
 	err = views.PollList(polls).Render(r.Context(), w)
 	if err != nil {
 		w.Header().Set("HX-Reswap", "none")
+		w.WriteHeader(http.StatusInternalServerError)
 		components.Toast(err.Error(), true).Render(r.Context(), w)
 		return
 	}
@@ -205,6 +210,7 @@ func (h *PollHandler) GetPollOptionInput(w http.ResponseWriter, r *http.Request)
 
 	if count >= 4 {
 		w.Header().Set("HX-Reswap", "none")
+		w.WriteHeader(http.StatusBadRequest)
 		components.Toast("Máximo 4 opciones permitidas", true).Render(r.Context(), w)
 		return
 	}

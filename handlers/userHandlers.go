@@ -26,6 +26,7 @@ func (h *userHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	if err := r.ParseForm(); err != nil {
 		w.Header().Set("HX-Reswap", "none")
+		w.WriteHeader(http.StatusBadRequest)
 		components.Toast("Invalid form data", true).Render(r.Context(), w)
 		return
 	}
@@ -38,6 +39,7 @@ func (h *userHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	_, err := h.service.CreateUser(r.Context(), req)
 	if err != nil {
 		w.Header().Set("HX-Reswap", "none")
+		w.WriteHeader(http.StatusBadRequest)
 		components.Toast(err.Error(), true).Render(r.Context(), w)
 		return
 	}
@@ -46,6 +48,7 @@ func (h *userHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	users, err := h.service.GetUsers(r.Context())
 	if err != nil {
 		w.Header().Set("HX-Reswap", "none")
+		w.WriteHeader(http.StatusInternalServerError)
 		components.Toast(err.Error(), true).Render(r.Context(), w)
 		return
 	}
@@ -53,6 +56,7 @@ func (h *userHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	err = views.UserList(users).Render(r.Context(), w)
 	if err != nil {
 		w.Header().Set("HX-Reswap", "none")
+		w.WriteHeader(http.StatusInternalServerError)
 		components.Toast(err.Error(), true).Render(r.Context(), w)
 		return
 	}

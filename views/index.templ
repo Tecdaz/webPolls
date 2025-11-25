@@ -16,6 +16,16 @@ templ Layout(content templ.Component, title string) {
 			/>
 			<meta name="description" content="Pagina para crear polls y votar"/>
 			<script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.7/dist/htmx.min.js" integrity="sha384-ZBXiYtYQ6hJ2Y0ZNoYuI+Nq5MqWBr+chMrS/RkXpNzQCApHEhOt2aY8EJgqwHLkJ" crossorigin="anonymous"></script>
+			// Previene el comportamiento por defecto de htmx al recibir un error asi manejamos correctamente la semantica
+			// de la respuesta del servidor con los codigos de error correspondientes
+			<script>
+				document.addEventListener("htmx:beforeSwap", function(evt) {
+					if (evt.detail.xhr.status >= 400 && evt.detail.xhr.status < 600) {
+						evt.detail.shouldSwap = true;
+						evt.detail.isError = false;
+					}
+				});
+			</script>
 		</head>
 		<body hx-boost="true" hx-target="#main-content">
 			@components.Navigator()
