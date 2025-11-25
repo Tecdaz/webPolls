@@ -4,28 +4,25 @@ import "webpolls/services"
 import "fmt"
 
 templ Users(users []services.UserResponse) {
-    <h1 class="h1UnderHeader">Gestion de usuarios</h1>
-    <div class="gridLayout">
-        @UserForm()
-        <div class="pollsSection container">
-            <h2>Lista de usuarios</h2>
-            @UserList(users)
-        </div>
-    </div>
-
+	<h1 class="h1UnderHeader">Gestion de usuarios</h1>
+	<div class="gridLayout">
+		@UserForm()
+		<div class="pollsSection container">
+			<h2>Lista de usuarios</h2>
+			@UserList(users)
+		</div>
+	</div>
 }
 
 templ UserForm() {
 	<div class="createPollDiv container">
 		<h2>Crear usuario</h2>
-		<form hx-post="/users/create" hx-target="#users-list" hx-on::after-request="handleResponseForms(event)" hx-on::after-settled="this.reset()" hx-swap="outerHTML">
+		<form hx-post="/users/create" hx-target="#users-list" hx-on::after-request="handleResponseForms(event, this)" hx-swap="outerHTML">
 			@FormField("email", "email", "email", "user@gmail.com", "Email")
 			@FormField("text", "username", "username", "user123", "Username")
 			@FormField("password", "password", "password", "Contraseña", "Contraseña")
 			<button type="submit">Crear Usuario</button>
 		</form>
-
-		
 	</div>
 }
 
@@ -37,11 +34,10 @@ templ FormField(typee, name, id, placeholder, content string) {
 }
 
 templ UserList(users []services.UserResponse) {
-
 	<div id="users-list" class="pollsContainer">
-        if len(users) == 1 {
-                <p>No hay usuarios</p>
-            }
+		if len(users) == 1 {
+			<p>No hay usuarios</p>
+		}
 		for _, user := range users {
 			if user.Id != 1 {
 				@UserCard(user)
@@ -55,7 +51,7 @@ templ UserCard(user services.UserResponse) {
 		<h3>{ user.Username }</h3>
 		<p>{ user.Email }</p>
 		<button class="deleteBtn" hx-delete={ fmt.Sprintf("/users/%d", user.Id) } hx-target="closest .singlePollDiv" hx-swap="outerHTML">
-            Eliminar
-        </button>
+			Eliminar
+		</button>
 	</div>
 }

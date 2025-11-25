@@ -46,7 +46,11 @@ func (h *userHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	views.Users(users).Render(r.Context(), w)
+	err = views.UserList(users).Render(r.Context(), w)
+	if err != nil {
+		RespondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
 }
 
 func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
@@ -65,16 +69,7 @@ func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 	//WEB
 	if r.Header.Get("HX-Request") == "true" {
-		users, err := h.service.GetUsers(r.Context())
-		if err != nil {
-			RespondWithError(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-		err = views.UserList(users).Render(r.Context(), w)
-		if err != nil {
-			RespondWithError(w, http.StatusInternalServerError, err.Error())
-			return
-		}
+		w.WriteHeader(http.StatusOK)
 		return
 	}
 

@@ -57,7 +57,11 @@ func (h *PollHandler) CreatePoll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	views.Polls(polls).Render(r.Context(), w)
+	err = views.PollList(polls).Render(r.Context(), w)
+	if err != nil {
+		RespondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
 }
 
 func (h *PollHandler) DeletePoll(w http.ResponseWriter, r *http.Request) {
@@ -76,16 +80,7 @@ func (h *PollHandler) DeletePoll(w http.ResponseWriter, r *http.Request) {
 
 	//WEB
 	if r.Header.Get("HX-Request") == "true" {
-		polls, err := h.service.GetPolls(r.Context())
-		if err != nil {
-			RespondWithError(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-		err = views.PollList(polls).Render(r.Context(), w)
-		if err != nil {
-			RespondWithError(w, http.StatusInternalServerError, err.Error())
-			return
-		}
+		w.WriteHeader(http.StatusOK)
 		return
 	}
 
