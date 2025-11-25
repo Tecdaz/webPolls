@@ -2,78 +2,80 @@ package views
 
 import "webpolls/components"
 
-templ Layout(content templ.Component, title string){
+templ Layout(content templ.Component, title string) {
 	<!DOCTYPE html>
 	<html lang="es">
-	<head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>{ title }</title>
-		<link rel="stylesheet" href="/static/styles.css">
-		<link href="https://fonts.googleapis.com/icon?family=Material+Icons"
-      		rel="stylesheet">
-        <meta name="description" content="Pagina para crear polls y votar" />
-    	<script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.7/dist/htmx.min.js" integrity="sha384-ZBXiYtYQ6hJ2Y0ZNoYuI+Nq5MqWBr+chMrS/RkXpNzQCApHEhOt2aY8EJgqwHLkJ" crossorigin="anonymous"></script>
-	</head>
-	<body hx-boost="true" hx-target="#main-content">
-		@components.Navigator()
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>{ title }</title>
+			<link rel="stylesheet" href="/static/styles.css"/>
+			<link
+				href="https://fonts.googleapis.com/icon?family=Material+Icons"
+				rel="stylesheet"
+			/>
+			<meta name="description" content="Pagina para crear polls y votar"/>
+			<script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.7/dist/htmx.min.js" integrity="sha384-ZBXiYtYQ6hJ2Y0ZNoYuI+Nq5MqWBr+chMrS/RkXpNzQCApHEhOt2aY8EJgqwHLkJ" crossorigin="anonymous"></script>
+		</head>
+		<body hx-boost="true" hx-target="#main-content">
+			@components.Navigator()
+			<main id="main-content" class="main">
+				@content
+			</main>
+			<div id="messagesContainer" class="messagesContainer" aria-live="polite" aria-atomic="true"></div>
+			<script>
+				function handleResponseForms(event, thisForm) {
+					console.log(event)
+					if (event.detail.failed) {
+						const response = JSON.parse(event.detail.xhr.response)
+						const messagesContainer = document.getElementById("messagesContainer")
+						const message = response.error
+						const messageDiv = document.createElement('div')
+		
+						//asignamos clases dependiendo si es error o exito para los estilos
+						messageDiv.className = 'message error';
+						messageDiv.textContent = message;
+						messagesContainer.appendChild(messageDiv); //insertamos en DOM para hacer visible el mensaje en la pagina
 
-		<main id="main-content" class="main">
-			@content
-
-		</main>
-		<div id="messagesContainer" class="messagesContainer" aria-live="polite" aria-atomic="true"></div>
-		<script>
-			function handleResponseForms(event) {
-				console.log(event)
-				if (event.detail.failed) {
-					const response = JSON.parse(event.detail.xhr.response)
-					const messagesContainer = document.getElementById("messagesContainer")
-					const message = response.error
-					const messageDiv = document.createElement('div')
-	
-					//asignamos clases dependiendo si es error o exito para los estilos
-					messageDiv.className = 'message error';
-					messageDiv.textContent = message;
-					messagesContainer.appendChild(messageDiv); //insertamos en DOM para hacer visible el mensaje en la pagina
-
-					requestAnimationFrame(() => {
-						messageDiv.classList.add('visible');
-					})
-					setTimeout(()=>{ //animaciones de entrada y salida
-						messageDiv.classList.remove('visible'); 
-						messageDiv.addEventListener('transitionend', () => messageDiv.remove() , { once: true });
-					}, 3000);
+						requestAnimationFrame(() => {
+							messageDiv.classList.add('visible');
+						})
+						setTimeout(()=>{ //animaciones de entrada y salida
+							messageDiv.classList.remove('visible'); 
+							messageDiv.addEventListener('transitionend', () => messageDiv.remove() , { once: true });
+						}, 3000);
+					} else {
+						thisForm.reset();
+					}
 				}
-			}
-		</script>
-		<script>
-			handleClickAddOptBtn = function(event) {
-				const addOptBtn = document.getElementById("addOptBtn");
-				
-				const optsContainer = document.getElementById("optsContainer");
-				if (document.querySelectorAll('input[name="options"]').length >= 4) {
-					alert("Máximo 4 opciones permitidas");
-					return;
+			</script>
+			<script>
+				handleClickAddOptBtn = function(event) {
+					const addOptBtn = document.getElementById("addOptBtn");
+					
+					const optsContainer = document.getElementById("optsContainer");
+					if (document.querySelectorAll('input[name="options"]').length >= 4) {
+						alert("Máximo 4 opciones permitidas");
+						return;
+					}
+
+					const optDiv = document.createElement("div");
+					optDiv.classList.add("opt");
+
+					optDiv.innerHTML = `
+						<label>Opción</label>
+						<div class="optInput">
+							<input type="text" name="options" placeholder="Escribe una opción..." required>
+							<i class="material-icons deleteOptBtn">delete</i>
+						</div>
+					`;
+
+					optDiv.querySelector(".deleteOptBtn").addEventListener("click", () => optDiv.remove());
+
+					optsContainer.appendChild(optDiv);
+					
 				}
-
-				const optDiv = document.createElement("div");
-				optDiv.classList.add("opt");
-
-				optDiv.innerHTML = `
-					<label>Opción</label>
-					<div class="optInput">
-						<input type="text" name="options" placeholder="Escribe una opción..." required>
-						<i class="material-icons deleteOptBtn">delete</i>
-					</div>
-				`;
-
-				optDiv.querySelector(".deleteOptBtn").addEventListener("click", () => optDiv.remove());
-
-				optsContainer.appendChild(optDiv);
-				
-			}
-		</script>
-	</body>
+			</script>
+		</body>
 	</html>
 }
