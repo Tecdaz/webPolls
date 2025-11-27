@@ -2,6 +2,7 @@
 
 - [Cómo empezar](#-cómo-empezar)
 - [Estructura del proyecto](#-estructura-del-proyecto)
+- [Desarrollo y ejecucion](#-desarrollo-y-ejecucion)
 - [Modelos de datos](#-modelos-de-datos)
 - [Autores](#-autores)
 
@@ -31,8 +32,9 @@ El servidor quedará corriendo en el puerto 8080 y la base de datos en el puerto
 ├───Makefile            # Archivo de comandos para facilitar tareas
 ├───go.mod
 ├───go.sum
+├───.env                # Variables de entorno
 ├───main.go
-├───seed.sh             # Script para popular la base de datos
+├───docker-entrypoint.sh             # Script para popular la base de datos
 ├───sqlc.yaml           # Configuración de sqlc
 ├───components/         # Componentes reutilizables (Templ)
 ├───db/
@@ -97,9 +99,18 @@ A parte de un id unico que identifica cada resultado, hay una clave compuesta (o
 
 Relación: Un `result` pertenece a una `option`, una `poll` y un `user` (1:N).
 
+## Desarrollo y ejecucion
+
+Agrupamos los comandos utiles para la etapa de desarrollo y ejecucion en el archivo `Makefile`
+con el objetivo de automatizar tareas repetitivas y ofrecer un mejor experiencia al usuario
+y sistemas que automatizan operaciones.
+
+
 ## Frontend
 
 El frontend de la aplicación está construido utilizando **Templ**, una librería de Go para generar HTML de manera eficiente y tipada.
+
+La aplicacion es reactiva usando unicamente htmx.
 
 Para acceder al frontend se debe acceder mediante el navegador a la direccion `http://localhost:8080`.
 
