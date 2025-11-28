@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	db "webpolls/db/sqlc"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct {
@@ -37,6 +39,12 @@ func (s *UserService) CreateUser(ctx context.Context, params UserRequest) (*User
 		return nil, errors.New("El email ya existe")
 	}
 
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(params.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+	params.Password = string(hashedPassword)
+
 	createdRow, err := s.Queries.CreateUser(ctx, params)
 	if err != nil {
 		return nil, err
@@ -48,6 +56,27 @@ func (s *UserService) CreateUser(ctx context.Context, params UserRequest) (*User
 		Email:    createdRow.Email,
 	}
 	return user, nil
+}
+
+func (s *UserService) Authenticate(ctx context.Context, email, password string) (*UserResponse, error) {
+	user, err := s.Queries.GetUserByEmail(ctx, email)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.New("credenciales inválidas")
+		}
+		return nil, err
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	if err != nil {
+		return nil, errors.New("credenciales inválidas")
+	}
+
+	return &UserResponse{
+		Id:       user.ID,
+		Username: user.Username,
+		Email:    user.Email,
+	}, nil
 }
 
 func (s *UserService) GetUserByID(ctx context.Context, id int32) (*UserResponse, error) {

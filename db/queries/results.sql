@@ -1,32 +1,21 @@
--- name: CreateResult :exec
+-- name: Vote :exec
 INSERT INTO results (poll_id, option_id, user_id)
-VALUES (@poll_id, @option_id, @user_id);
+VALUES (@poll_id, @option_id, @user_id)
+ON CONFLICT (poll_id, option_id, user_id) DO NOTHING;
 
--- name: GetResultByID :one
-SELECT id, poll_id, option_id, user_id
-FROM results
-WHERE id = @id;
-
--- name: GetAllResults :many
-SELECT id, poll_id, option_id, user_id
-FROM results
-ORDER BY id ASC;
-
--- name: UpdateResult :exec
-UPDATE results
-SET option_id = @option_id
-WHERE id = @id;
-
--- name: DeleteResult :exec
+-- name: DeleteUserVote :exec
 DELETE FROM results
-WHERE id = @id;
+WHERE poll_id = @poll_id AND user_id = @user_id;
 
--- name: GetResultsByPollID :many
-SELECT id, poll_id, option_id, user_id
+-- name: GetPollResults :many
+SELECT 
+    option_id,
+    COUNT(user_id) AS vote_count
 FROM results
-WHERE poll_id = @poll_id;
+WHERE poll_id = @poll_id
+GROUP BY option_id;
 
--- name: GetResultsGroupByPollID :many
-SELECT poll_id, option_id, COUNT(*) AS total
+-- name: GetUserVote :one
+SELECT option_id
 FROM results
-GROUP BY poll_id, option_id;
+WHERE poll_id = @poll_id AND user_id = @user_id;

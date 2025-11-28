@@ -14,7 +14,7 @@ FROM users
 WHERE username = @username;
 
 -- name: GetUserByEmail :one
-SELECT id, username, email
+SELECT id, username, email, password
 FROM users
 WHERE email = @email;
 

@@ -2,12 +2,12 @@ package views
 
 import "webpolls/components"
 
-templ Layout(content templ.Component, title string) {
+templ Layout(content templ.Component, title string, isAuthenticated bool) {
 	<!DOCTYPE html>
 	<html lang="es">
 		@components.Head(title)
 		<body hx-boost="true" hx-target="#main-content" class="min-h-screen bg-background text-foreground font-sans antialiased">
-			@components.Navigator()
+			@components.Navigator(isAuthenticated)
 			<main id="main-content" class="flex-1 animate-fade-in-up">
 				@content
 			</main>

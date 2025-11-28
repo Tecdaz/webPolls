@@ -43,7 +43,7 @@ func Register() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<form class=\"space-y-6\" action=\"#\" method=\"POST\"><div class=\"-space-y-px rounded-md\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<form class=\"space-y-6\" hx-post=\"/users/create\" hx-swap=\"none\"><div class=\"-space-y-px rounded-md\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

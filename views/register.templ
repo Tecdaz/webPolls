@@ -4,7 +4,7 @@ import "webpolls/components"
 
 templ Register() {
 	@components.AuthContainer("Crear Cuenta", "¿Ya tienes una cuenta?", "Inicia sesión aquí", "/login") {
-		<form class="space-y-6" action="#" method="POST">
+		<form class="space-y-6" hx-post="/users/create" hx-swap="none">
 			<div class="-space-y-px rounded-md">
 				@components.FormItem() {
 					@components.Label("username", "Usuario")

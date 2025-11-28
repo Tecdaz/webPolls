@@ -44,23 +44,9 @@ func (h *userHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//nuevamente llamo a esto para traer los usuarios y renderizarlos
-	users, err := h.service.GetUsers(r.Context())
-	if err != nil {
-		w.Header().Set("HX-Reswap", "none")
-		w.WriteHeader(http.StatusInternalServerError)
-		components.Toast(err.Error(), true).Render(r.Context(), w)
-		return
-	}
-
-	err = views.UserList(users).Render(r.Context(), w)
-	if err != nil {
-		w.Header().Set("HX-Reswap", "none")
-		w.WriteHeader(http.StatusInternalServerError)
-		components.Toast(err.Error(), true).Render(r.Context(), w)
-		return
-	}
-	components.Toast("Usuario creado correctamente", false).Render(r.Context(), w)
+	// Redirect to login page
+	w.Header().Set("HX-Redirect", "/login")
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
@@ -152,7 +138,7 @@ func (h *userHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = views.Layout(views.Users(users), "Usuarios - Webpolls").Render(r.Context(), w)
+	err = views.Layout(views.Users(users), "Usuarios - Webpolls", utils.IsAuthenticated(r)).Render(r.Context(), w)
 	if err != nil {
 		RespondWithError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -160,6 +146,12 @@ func (h *userHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *userHandler) GetLogin(w http.ResponseWriter, r *http.Request) {
+	// Si ya está logueado, redirigir al home
+	if utils.IsAuthenticated(r) {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
 	err := views.AuthLayout(views.Login(), "Iniciar Sesión - Webpolls").Render(r.Context(), w)
 	if err != nil {
 		RespondWithError(w, http.StatusInternalServerError, err.Error())
@@ -167,7 +159,53 @@ func (h *userHandler) GetLogin(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *userHandler) PostLogin(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		w.Header().Set("HX-Reswap", "none")
+		w.WriteHeader(http.StatusBadRequest)
+		components.Toast("Invalid form data", true).Render(r.Context(), w)
+		return
+	}
+
+	email := r.FormValue("email")
+	password := r.FormValue("password")
+
+	user, err := h.service.Authenticate(r.Context(), email, password)
+	if err != nil {
+		w.Header().Set("HX-Reswap", "none")
+		w.WriteHeader(http.StatusUnauthorized)
+		components.Toast(err.Error(), true).Render(r.Context(), w)
+		return
+	}
+
+	// Crear sesión
+	session := utils.GetSession(r)
+	session.Values["authenticated"] = true
+	session.Values["user_id"] = user.Id
+	session.Values["username"] = user.Username
+	utils.SaveSession(w, r, session)
+
+	// Redirigir al home usando HTMX
+	w.Header().Set("HX-Redirect", "/")
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *userHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	session := utils.GetSession(r)
+	session.Values["authenticated"] = false
+	session.Options.MaxAge = -1
+	utils.SaveSession(w, r, session)
+
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
+}
+
 func (h *userHandler) GetRegister(w http.ResponseWriter, r *http.Request) {
+	// Si ya está logueado, redirigir al home
+	if utils.IsAuthenticated(r) {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
 	err := views.AuthLayout(views.Register(), "Registrarse - Webpolls").Render(r.Context(), w)
 	if err != nil {
 		RespondWithError(w, http.StatusInternalServerError, err.Error())

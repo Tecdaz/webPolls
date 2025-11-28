@@ -5,7 +5,9 @@ import (
 	"net/http"
 	"webpolls/db"
 	"webpolls/handlers"
+	"webpolls/middleware"
 	"webpolls/services"
+	"webpolls/utils"
 
 	sqlc "webpolls/db/sqlc"
 )
@@ -15,16 +17,20 @@ func main() {
 	dbConn := db.InitDB()
 	defer dbConn.Close()
 
+	// Inicializar Session Store
+	utils.InitSessionStore()
+
 	// Inyección de dependencias
 	queries := sqlc.New(dbConn)
 
 	// Inicializar servicios
 	userService := services.NewUserService(queries)
 	pollService := services.NewPollService(queries, dbConn)
+	sseBroker := services.NewSSEBroker()
 
 	// Inicializar handlers con los servicios
 	userHandler := handlers.NewUserHandler(userService)
-	pollHandler := handlers.NewPollHandler(pollService)
+	pollHandler := handlers.NewPollHandler(pollService, sseBroker)
 	homeHandler := handlers.NewHomeHandler(userService)
 
 	// Crear un nuevo mux y registrar todas las rutas
@@ -35,23 +41,28 @@ func main() {
 
 	// Rutas de usuarios
 	mux.HandleFunc("POST /users/create", userHandler.CreateUser)
-	mux.HandleFunc("GET /users/{id}", userHandler.GetUser)
-	mux.HandleFunc("DELETE /users/{id}", userHandler.DeleteUser)
-	mux.HandleFunc("PUT /users/{id}", userHandler.UpdateUser)
-	mux.HandleFunc("GET /users", userHandler.GetUsers)
+	// mux.HandleFunc("GET /users/{id}", userHandler.GetUser)
+	// mux.HandleFunc("DELETE /users/{id}", userHandler.DeleteUser)
+	// mux.HandleFunc("PUT /users/{id}", userHandler.UpdateUser)
+	// mux.HandleFunc("GET /users", userHandler.GetUsers) // Oculto por ahora
 
 	// Auth routes
 	mux.HandleFunc("GET /login", userHandler.GetLogin)
+	mux.HandleFunc("POST /login", userHandler.PostLogin)
 	mux.HandleFunc("GET /register", userHandler.GetRegister)
+	mux.HandleFunc("/logout", userHandler.Logout)
 
-	// Rutas de encuestas
-	mux.HandleFunc("POST /polls/create", pollHandler.CreatePoll)
-	mux.HandleFunc("GET /polls/{id}", pollHandler.GetPoll)
-	mux.HandleFunc("DELETE /polls/{id}", pollHandler.DeletePoll)
-	mux.HandleFunc("GET /polls", pollHandler.GetPolls)
-	mux.HandleFunc("PUT /options/{id}", pollHandler.UpdateOption)
-	mux.HandleFunc("DELETE /polls/{poll_id}/options/{id}", pollHandler.DeleteOption)
-	mux.HandleFunc("GET /polls/components/option", pollHandler.GetPollOptionInput)
+	// Rutas de encuestas (Protegidas)
+	mux.Handle("POST /polls/create", middleware.AuthMiddleware(http.HandlerFunc(pollHandler.CreatePoll)))
+	mux.Handle("GET /polls/{id}", middleware.OptionalAuthMiddleware(http.HandlerFunc(pollHandler.GetPollPage)))
+	mux.Handle("POST /polls/{id}/vote", middleware.AuthMiddleware(http.HandlerFunc(pollHandler.Vote)))
+	mux.Handle("DELETE /polls/{id}", middleware.AuthMiddleware(http.HandlerFunc(pollHandler.DeletePoll)))
+	mux.Handle("GET /polls", middleware.OptionalAuthMiddleware(http.HandlerFunc(pollHandler.GetPolls)))
+	mux.Handle("GET /my-polls", middleware.AuthMiddleware(http.HandlerFunc(pollHandler.GetMyPolls))) // New protected route
+	mux.Handle("PUT /options/{id}", middleware.AuthMiddleware(http.HandlerFunc(pollHandler.UpdateOption)))
+	mux.Handle("DELETE /polls/{poll_id}/options/{id}", middleware.AuthMiddleware(http.HandlerFunc(pollHandler.DeleteOption)))
+	mux.HandleFunc("GET /polls/components/option", pollHandler.GetPollOptionInput) // Public? Used in creation form. If creation is protected, this might need to be too, but it's just a fragment.
+	mux.HandleFunc("GET /events", pollHandler.SSE)
 
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 

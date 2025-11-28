@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 )
 
 const createPoll = `-- name: CreatePoll :one
@@ -43,22 +44,25 @@ SELECT
     p.title,
     p.user_id,
     o.id AS option_id,
-    o.content AS option_content
+    o.content AS option_content,
+    r.option_id AS user_voted_option_id
 FROM polls p
-inner JOIN options o ON p.id = o.poll_id
+JOIN options o ON p.id = o.poll_id
+LEFT JOIN results r ON p.id = r.poll_id AND r.user_id = $1
 ORDER BY p.id ASC
 `
 
 type GetAllPollsRow struct {
-	PollID        int32  `json:"poll_id"`
-	Title         string `json:"title"`
-	UserID        int32  `json:"user_id"`
-	OptionID      int32  `json:"option_id"`
-	OptionContent string `json:"option_content"`
+	PollID            int32         `json:"poll_id"`
+	Title             string        `json:"title"`
+	UserID            int32         `json:"user_id"`
+	OptionID          int32         `json:"option_id"`
+	OptionContent     string        `json:"option_content"`
+	UserVotedOptionID sql.NullInt32 `json:"user_voted_option_id"`
 }
 
-func (q *Queries) GetAllPolls(ctx context.Context) ([]GetAllPollsRow, error) {
-	rows, err := q.db.QueryContext(ctx, getAllPolls)
+func (q *Queries) GetAllPolls(ctx context.Context, userID int32) ([]GetAllPollsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getAllPolls, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -72,6 +76,7 @@ func (q *Queries) GetAllPolls(ctx context.Context) ([]GetAllPollsRow, error) {
 			&i.UserID,
 			&i.OptionID,
 			&i.OptionContent,
+			&i.UserVotedOptionID,
 		); err != nil {
 			return nil, err
 		}
@@ -122,6 +127,65 @@ func (q *Queries) GetPollByID(ctx context.Context, id int32) ([]GetPollByIDRow, 
 			&i.UserID,
 			&i.OptionID,
 			&i.OptionContent,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPollsByUserID = `-- name: GetPollsByUserID :many
+SELECT
+    p.id AS poll_id,
+    p.title,
+    p.user_id,
+    o.id AS option_id,
+    o.content AS option_content,
+    r.option_id AS user_voted_option_id
+FROM polls p
+JOIN options o ON p.id = o.poll_id
+LEFT JOIN results r ON p.id = r.poll_id AND r.user_id = $1
+WHERE p.user_id = $2
+ORDER BY p.id ASC
+`
+
+type GetPollsByUserIDParams struct {
+	ViewerID int32 `json:"viewer_id"`
+	OwnerID  int32 `json:"owner_id"`
+}
+
+type GetPollsByUserIDRow struct {
+	PollID            int32         `json:"poll_id"`
+	Title             string        `json:"title"`
+	UserID            int32         `json:"user_id"`
+	OptionID          int32         `json:"option_id"`
+	OptionContent     string        `json:"option_content"`
+	UserVotedOptionID sql.NullInt32 `json:"user_voted_option_id"`
+}
+
+func (q *Queries) GetPollsByUserID(ctx context.Context, arg GetPollsByUserIDParams) ([]GetPollsByUserIDRow, error) {
+	rows, err := q.db.QueryContext(ctx, getPollsByUserID, arg.ViewerID, arg.OwnerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPollsByUserIDRow
+	for rows.Next() {
+		var i GetPollsByUserIDRow
+		if err := rows.Scan(
+			&i.PollID,
+			&i.Title,
+			&i.UserID,
+			&i.OptionID,
+			&i.OptionContent,
+			&i.UserVotedOptionID,
 		); err != nil {
 			return nil, err
 		}

@@ -1,0 +1,93 @@
+package views
+
+import "webpolls/services"
+import "fmt"
+import "webpolls/components"
+
+templ PollDetail(poll *services.PollResponse, isAuthenticated bool) {
+	<div class="container mx-auto px-4 py-8 max-w-2xl">
+		<div class="mb-6">
+			<a href="/polls" class="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors">
+				<i class="material-icons text-base mr-1">arrow_back</i>
+				Volver a Encuestas
+			</a>
+		</div>
+		@components.GlassPanel() {
+			<div hx-ext="sse" sse-connect="/events" hx-trigger={ fmt.Sprintf("sse:poll_update_%d", poll.ID) } hx-get={ fmt.Sprintf("/polls/%d", poll.ID) } hx-target={ fmt.Sprintf("#poll-%d", poll.ID) } hx-swap="outerHTML">
+				@PollDetailContent(poll, isAuthenticated)
+			</div>
+		}
+	</div>
+}
+
+templ PollDetailContent(poll *services.PollResponse, isAuthenticated bool) {
+	<div id={ fmt.Sprintf("poll-%d", poll.ID) } class="space-y-6">
+		<div class="space-y-2">
+			<h1 class="text-3xl font-bold tracking-tight">{ poll.Title }</h1>
+			<p class="text-muted-foreground">
+				Total de votos: <span class="font-medium text-foreground">{ fmt.Sprintf("%d", poll.TotalVotes) }</span>
+			</p>
+		</div>
+		<div class="space-y-4">
+			for _, option := range poll.Options {
+				// Logic: Always show options.
+				// If voted:
+				//   - Show progress bar background.
+				//   - If THIS option is the voted one: Highlight, disable button, show "Your vote".
+				//   - If another option: Enable button (to change vote).
+				// If not voted:
+				//   - Show normal button.
+				<div class="relative group">
+					// Progress bar background (only if user has voted OR we want to show results to everyone? Requirement: "esa info se muestre siempre en tiempo real")
+					// "esa info" refers to "numero de votaciones totales y como se distribuyen".
+					// So we should ALWAYS show results (percentages).
+					<div class="absolute inset-0 bg-secondary/30 rounded-lg overflow-hidden h-full w-full -z-10">
+						<div class="h-full bg-primary/10 transition-all duration-1000 ease-out" style={ fmt.Sprintf("width: %.1f%%", option.Percentage) }></div>
+					</div>
+					if isAuthenticated {
+						<button
+							hx-post={ fmt.Sprintf("/polls/%d/vote", poll.ID) }
+							hx-vals={ fmt.Sprintf(`{"option_id": %d}`, option.ID) }
+							hx-target={ fmt.Sprintf("#poll-%d", poll.ID) }
+							hx-swap="outerHTML"
+							class={
+								"w-full text-left p-4 rounded-lg border transition-all flex items-center justify-between z-10 relative",
+								templ.KV("border-primary bg-primary/5 cursor-default", poll.UserVotedOptionID != nil && *poll.UserVotedOptionID == option.ID),
+								templ.KV("border-transparent hover:bg-accent/50 hover:border-primary/30 cursor-pointer", poll.UserVotedOptionID == nil || *poll.UserVotedOptionID != option.ID),
+							}
+							disabled?={ poll.UserVotedOptionID != nil && *poll.UserVotedOptionID == option.ID }
+						>
+							<div class="flex flex-col">
+								<span class="font-medium flex items-center gap-2">
+									{ option.Content }
+									if poll.UserVotedOptionID != nil && *poll.UserVotedOptionID == option.ID {
+										<span class="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full">Tu voto</span>
+									}
+								</span>
+								<span class="text-xs text-muted-foreground mt-1">{ fmt.Sprintf("%d votos (%.1f%%)", option.VoteCount, option.Percentage) }</span>
+							</div>
+							if poll.UserVotedOptionID != nil && *poll.UserVotedOptionID == option.ID {
+								<i class="material-icons text-primary">check_circle</i>
+							} else if poll.UserVotedOptionID != nil {
+								// Option to change vote
+								<span class="text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity">Cambiar voto</span>
+							}
+						</button>
+					} else {
+						<div class="w-full text-left p-4 rounded-lg border border-transparent flex items-center justify-between z-10 relative">
+							<div class="flex flex-col">
+								<span class="font-medium">{ option.Content }</span>
+								<span class="text-xs text-muted-foreground mt-1">{ fmt.Sprintf("%d votos (%.1f%%)", option.VoteCount, option.Percentage) }</span>
+							</div>
+						</div>
+					}
+				</div>
+			}
+		</div>
+		if !isAuthenticated {
+			<div class="pt-4 text-center text-sm text-muted-foreground">
+				<a href="/login" class="text-primary hover:underline font-medium">Inicia sesión</a> para votar.
+			</div>
+		}
+	</div>
+}

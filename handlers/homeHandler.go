@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"webpolls/services"
+	"webpolls/utils"
 	"webpolls/views"
 )
 
@@ -24,7 +25,7 @@ func (h *homeHandler) GetHome(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := views.Layout(views.Home(), "Webpolls").Render(r.Context(), w)
+	err := views.Layout(views.Home(), "Webpolls", utils.IsAuthenticated(r)).Render(r.Context(), w)
 	if err != nil {
 		RespondWithError(w, http.StatusInternalServerError, err.Error())
 		return

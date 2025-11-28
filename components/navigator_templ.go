@@ -8,7 +8,7 @@ package components
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-func Navigator() templ.Component {
+func Navigator(isAuthenticated bool) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -29,7 +29,47 @@ func Navigator() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<header class=\"sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 animate-fade-in-up\"><div class=\"container flex h-14 max-w-screen-2xl items-center justify-between mx-auto px-4\"><div class=\"mr-4 flex\"><a class=\"mr-6 flex items-center space-x-2\" href=\"/\"><span class=\"font-bold inline-block\">WebPolls</span></a><nav class=\"hidden md:flex items-center space-x-6 text-sm font-medium\"><a href=\"/\" class=\"transition-colors hover:text-foreground/80 text-foreground/60 animate-hover-scale\">Inicio</a> <a href=\"/users\" class=\"transition-colors hover:text-foreground/80 text-foreground/60 animate-hover-scale\">Usuarios</a> <a href=\"/polls\" class=\"transition-colors hover:text-foreground/80 text-foreground/60 animate-hover-scale\">Polls</a></nav></div><div class=\"flex items-center space-x-4\"><a href=\"/login\" class=\"hidden md:inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 animate-hover-scale\">Iniciar Sesión</a> <a href=\"/register\" class=\"hidden md:inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2 animate-hover-scale\">Registrarse</a></div><button class=\"inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:text-accent-foreground h-9 py-2 mr-2 px-0 text-base hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 md:hidden\" type=\"button\" aria-haspopup=\"dialog\" aria-expanded=\"false\" aria-controls=\"mobile-menu\" onclick=\"document.getElementById('mobile-menu').classList.toggle('hidden')\"><i class=\"material-icons\">menu</i> <span class=\"sr-only\">Toggle Menu</span></button></div><div id=\"mobile-menu\" class=\"hidden md:hidden border-t border-border/40 bg-background\"><nav class=\"flex flex-col space-y-4 p-4\"><a href=\"/\" class=\"text-sm font-medium transition-colors hover:text-foreground/80 text-foreground/60\">Inicio</a> <a href=\"/users\" class=\"text-sm font-medium transition-colors hover:text-foreground/80 text-foreground/60\">Usuarios</a> <a href=\"/polls\" class=\"text-sm font-medium transition-colors hover:text-foreground/80 text-foreground/60\">Polls</a></nav></div></header>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<header class=\"sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 animate-fade-in-up\"><div class=\"container flex h-14 max-w-screen-2xl items-center justify-between mx-auto px-4\"><div class=\"mr-4 flex\"><a class=\"mr-6 flex items-center space-x-2\" href=\"/\"><span class=\"font-bold inline-block\">WebPolls</span></a><nav class=\"hidden md:flex items-center space-x-6 text-sm font-medium\"><a href=\"/polls\" class=\"transition-colors hover:text-foreground/80 text-foreground/60 animate-hover-scale\">Polls</a> ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if isAuthenticated {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<a href=\"/my-polls\" class=\"transition-colors hover:text-foreground/80 text-foreground/60 animate-hover-scale\">Mis Polls</a>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</nav></div><div class=\"flex items-center space-x-4\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if isAuthenticated {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<a href=\"/logout\" hx-boost=\"false\" class=\"hidden md:inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 animate-hover-scale\">Cerrar Sesión</a>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<a href=\"/login\" hx-boost=\"false\" class=\"hidden md:inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 animate-hover-scale\">Iniciar Sesión</a> <a href=\"/register\" hx-boost=\"false\" class=\"hidden md:inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2 animate-hover-scale\">Registrarse</a>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</div><button class=\"inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:text-accent-foreground h-9 py-2 mr-2 px-0 text-base hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 md:hidden\" type=\"button\" aria-haspopup=\"dialog\" aria-expanded=\"false\" aria-controls=\"mobile-menu\" onclick=\"document.getElementById('mobile-menu').classList.toggle('hidden')\"><i class=\"material-icons\">menu</i> <span class=\"sr-only\">Toggle Menu</span></button></div><div id=\"mobile-menu\" class=\"hidden md:hidden border-t border-border/40 bg-background\"><nav class=\"flex flex-col space-y-4 p-4\"><a href=\"/polls\" class=\"text-sm font-medium transition-colors hover:text-foreground/80 text-foreground/60\">Polls</a> ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if isAuthenticated {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<a href=\"/my-polls\" class=\"text-sm font-medium transition-colors hover:text-foreground/80 text-foreground/60\">Mis Polls</a> <a href=\"/logout\" hx-boost=\"false\" class=\"text-sm font-medium transition-colors hover:text-foreground/80 text-foreground/60\">Cerrar Sesión</a>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<a href=\"/login\" hx-boost=\"false\" class=\"text-sm font-medium transition-colors hover:text-foreground/80 text-foreground/60\">Iniciar Sesión</a> <a href=\"/register\" hx-boost=\"false\" class=\"text-sm font-medium transition-colors hover:text-foreground/80 text-foreground/60\">Registrarse</a>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</nav></div></header>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

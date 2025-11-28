@@ -9,165 +9,89 @@ import (
 	"context"
 )
 
-const createResult = `-- name: CreateResult :exec
-INSERT INTO results (poll_id, option_id, user_id)
-VALUES ($1, $2, $3)
+const deleteUserVote = `-- name: DeleteUserVote :exec
+DELETE FROM results
+WHERE poll_id = $1 AND user_id = $2
 `
 
-type CreateResultParams struct {
+type DeleteUserVoteParams struct {
+	PollID int32 `json:"poll_id"`
+	UserID int32 `json:"user_id"`
+}
+
+func (q *Queries) DeleteUserVote(ctx context.Context, arg DeleteUserVoteParams) error {
+	_, err := q.db.ExecContext(ctx, deleteUserVote, arg.PollID, arg.UserID)
+	return err
+}
+
+const getPollResults = `-- name: GetPollResults :many
+SELECT 
+    option_id,
+    COUNT(user_id) AS vote_count
+FROM results
+WHERE poll_id = $1
+GROUP BY option_id
+`
+
+type GetPollResultsRow struct {
+	OptionID  int32 `json:"option_id"`
+	VoteCount int64 `json:"vote_count"`
+}
+
+func (q *Queries) GetPollResults(ctx context.Context, pollID int32) ([]GetPollResultsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getPollResults, pollID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPollResultsRow
+	for rows.Next() {
+		var i GetPollResultsRow
+		if err := rows.Scan(&i.OptionID, &i.VoteCount); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getUserVote = `-- name: GetUserVote :one
+SELECT option_id
+FROM results
+WHERE poll_id = $1 AND user_id = $2
+`
+
+type GetUserVoteParams struct {
+	PollID int32 `json:"poll_id"`
+	UserID int32 `json:"user_id"`
+}
+
+func (q *Queries) GetUserVote(ctx context.Context, arg GetUserVoteParams) (int32, error) {
+	row := q.db.QueryRowContext(ctx, getUserVote, arg.PollID, arg.UserID)
+	var option_id int32
+	err := row.Scan(&option_id)
+	return option_id, err
+}
+
+const vote = `-- name: Vote :exec
+INSERT INTO results (poll_id, option_id, user_id)
+VALUES ($1, $2, $3)
+ON CONFLICT (poll_id, option_id, user_id) DO NOTHING
+`
+
+type VoteParams struct {
 	PollID   int32 `json:"poll_id"`
 	OptionID int32 `json:"option_id"`
 	UserID   int32 `json:"user_id"`
 }
 
-func (q *Queries) CreateResult(ctx context.Context, arg CreateResultParams) error {
-	_, err := q.db.ExecContext(ctx, createResult, arg.PollID, arg.OptionID, arg.UserID)
-	return err
-}
-
-const deleteResult = `-- name: DeleteResult :exec
-DELETE FROM results
-WHERE id = $1
-`
-
-func (q *Queries) DeleteResult(ctx context.Context, id int32) error {
-	_, err := q.db.ExecContext(ctx, deleteResult, id)
-	return err
-}
-
-const getAllResults = `-- name: GetAllResults :many
-SELECT id, poll_id, option_id, user_id
-FROM results
-ORDER BY id ASC
-`
-
-func (q *Queries) GetAllResults(ctx context.Context) ([]Result, error) {
-	rows, err := q.db.QueryContext(ctx, getAllResults)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Result
-	for rows.Next() {
-		var i Result
-		if err := rows.Scan(
-			&i.ID,
-			&i.PollID,
-			&i.OptionID,
-			&i.UserID,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getResultByID = `-- name: GetResultByID :one
-SELECT id, poll_id, option_id, user_id
-FROM results
-WHERE id = $1
-`
-
-func (q *Queries) GetResultByID(ctx context.Context, id int32) (Result, error) {
-	row := q.db.QueryRowContext(ctx, getResultByID, id)
-	var i Result
-	err := row.Scan(
-		&i.ID,
-		&i.PollID,
-		&i.OptionID,
-		&i.UserID,
-	)
-	return i, err
-}
-
-const getResultsByPollID = `-- name: GetResultsByPollID :many
-SELECT id, poll_id, option_id, user_id
-FROM results
-WHERE poll_id = $1
-`
-
-func (q *Queries) GetResultsByPollID(ctx context.Context, pollID int32) ([]Result, error) {
-	rows, err := q.db.QueryContext(ctx, getResultsByPollID, pollID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Result
-	for rows.Next() {
-		var i Result
-		if err := rows.Scan(
-			&i.ID,
-			&i.PollID,
-			&i.OptionID,
-			&i.UserID,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getResultsGroupByPollID = `-- name: GetResultsGroupByPollID :many
-SELECT poll_id, option_id, COUNT(*) AS total
-FROM results
-GROUP BY poll_id, option_id
-`
-
-type GetResultsGroupByPollIDRow struct {
-	PollID   int32 `json:"poll_id"`
-	OptionID int32 `json:"option_id"`
-	Total    int64 `json:"total"`
-}
-
-func (q *Queries) GetResultsGroupByPollID(ctx context.Context) ([]GetResultsGroupByPollIDRow, error) {
-	rows, err := q.db.QueryContext(ctx, getResultsGroupByPollID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GetResultsGroupByPollIDRow
-	for rows.Next() {
-		var i GetResultsGroupByPollIDRow
-		if err := rows.Scan(&i.PollID, &i.OptionID, &i.Total); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const updateResult = `-- name: UpdateResult :exec
-UPDATE results
-SET option_id = $1
-WHERE id = $2
-`
-
-type UpdateResultParams struct {
-	OptionID int32 `json:"option_id"`
-	ID       int32 `json:"id"`
-}
-
-func (q *Queries) UpdateResult(ctx context.Context, arg UpdateResultParams) error {
-	_, err := q.db.ExecContext(ctx, updateResult, arg.OptionID, arg.ID)
+func (q *Queries) Vote(ctx context.Context, arg VoteParams) error {
+	_, err := q.db.ExecContext(ctx, vote, arg.PollID, arg.OptionID, arg.UserID)
 	return err
 }
