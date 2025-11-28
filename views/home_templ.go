@@ -29,7 +29,7 @@ func Home() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<h1 class=\"h1UnderHeader\">Bienvenido a WebPolls</h1><p style=\"color: white; text-align: center; grid-column: 1 / -1;\">En esta pagina podras administrar tus encuestas y ver que contesta la gente de manera anonima, con tu usuario podras administrar tus encuestas y ver sus resultados. En este punto ya se esta utilizando HTMLX para hacer las peticiones y mostrar los resultados</p>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"container mx-auto py-20 px-4 text-center\"><h1 class=\"text-4xl font-extrabold tracking-tight lg:text-5xl mb-6 scroll-m-20\">Bienvenido a WebPolls</h1><p class=\"text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed\">En esta pagina podras administrar tus encuestas y ver que contesta la gente de manera anonima, con tu usuario podras administrar tus encuestas y ver sus resultados.</p><p class=\"mt-4 text-muted-foreground\">En este punto ya se esta utilizando HTMX para hacer las peticiones y mostrar los resultados</p></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

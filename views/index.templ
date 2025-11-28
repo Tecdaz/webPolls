@@ -27,12 +27,12 @@ templ Layout(content templ.Component, title string) {
 				});
 			</script>
 		</head>
-		<body hx-boost="true" hx-target="#main-content">
+		<body hx-boost="true" hx-target="#main-content" class="min-h-screen bg-background text-foreground font-sans antialiased">
 			@components.Navigator()
-			<main id="main-content" class="main">
+			<main id="main-content" class="flex-1">
 				@content
 			</main>
-			<div id="messagesContainer" class="messagesContainer" aria-live="polite" aria-atomic="true"></div>
+			<div id="messagesContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2" aria-live="polite" aria-atomic="true"></div>
 		</body>
 	</html>
 }

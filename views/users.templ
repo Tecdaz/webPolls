@@ -4,39 +4,52 @@ import "webpolls/services"
 import "fmt"
 
 templ Users(users []services.UserResponse) {
-	<h1 class="h1UnderHeader">Gestion de usuarios</h1>
-	<div class="gridLayout">
-		@UserForm()
-		<div class="pollsSection container">
-			<h2>Lista de usuarios</h2>
-			@UserList(users)
+	<div class="container mx-auto py-10 px-4">
+		<h1 class="text-3xl font-bold tracking-tight mb-8">Gestion de usuarios</h1>
+		<div class="grid gap-8 lg:grid-cols-[400px_1fr]">
+			<aside>
+				@UserForm()
+			</aside>
+			<section>
+				<h2 class="text-2xl font-semibold tracking-tight mb-6">Lista de usuarios</h2>
+				@UserList(users)
+			</section>
 		</div>
 	</div>
 }
 
 templ UserForm() {
-	<div class="createPollDiv container">
-		<h2>Crear usuario</h2>
-		<form hx-post="/users/create" hx-target="#users-list" hx-on::after-request="if(event.detail.successful && event.detail.elt === this && !event.detail.xhr.getResponseHeader('HX-Reswap')) this.reset()" hx-swap="outerHTML">
-			@FormField("email", "email", "email", "user@gmail.com", "Email")
-			@FormField("text", "username", "username", "user123", "Username")
-			@FormField("password", "password", "password", "Contraseña", "Contraseña")
-			<button type="submit">Crear Usuario</button>
-		</form>
+	<div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+		<div class="flex flex-col space-y-1.5 p-6">
+			<h3 class="font-semibold leading-none tracking-tight">Crear usuario</h3>
+			<p class="text-sm text-muted-foreground">Registra un nuevo usuario en el sistema.</p>
+		</div>
+		<div class="p-6 pt-0">
+			<form hx-post="/users/create" hx-target="#users-list" hx-on::after-request="if(event.detail.successful && event.detail.elt === this && !event.detail.xhr.getResponseHeader('HX-Reswap')) this.reset()" hx-swap="outerHTML" class="space-y-4">
+				@FormField("email", "email", "email", "user@gmail.com", "Email")
+				@FormField("text", "username", "username", "user123", "Username")
+				@FormField("password", "password", "password", "Contraseña", "Contraseña")
+				<button type="submit" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full">
+					Crear Usuario
+				</button>
+			</form>
+		</div>
 	</div>
 }
 
 templ FormField(typee, name, id, placeholder, content string) {
-	<div>
-		<label for={ id }>{ content }</label>
-		<input type={ typee } name={ name } id={ id } placeholder={ placeholder }/>
+	<div class="grid w-full items-center gap-1.5">
+		<label for={ id } class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">{ content }</label>
+		<input type={ typee } name={ name } id={ id } placeholder={ placeholder } class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"/>
 	</div>
 }
 
 templ UserList(users []services.UserResponse) {
-	<div id="users-list" class="pollsContainer">
+	<div id="users-list" class="space-y-4">
 		if len(users) == 1 {
-			<p>No hay usuarios</p>
+			<div class="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
+				No hay usuarios registrados.
+			</div>
 		}
 		for _, user := range users {
 			if user.Id != 1 {
@@ -47,10 +60,12 @@ templ UserList(users []services.UserResponse) {
 }
 
 templ UserCard(user services.UserResponse) {
-	<div class="singlePollDiv">
-		<h3>{ user.Username }</h3>
-		<p>{ user.Email }</p>
-		<button class="deleteBtn" hx-delete={ fmt.Sprintf("/users/%d", user.Id) } hx-target="closest .singlePollDiv" hx-swap="outerHTML">
+	<div class="singlePollDiv rounded-lg border bg-card text-card-foreground shadow-sm transition-all hover:shadow-md flex items-center justify-between p-6">
+		<div class="space-y-1">
+			<h3 class="font-semibold leading-none tracking-tight">{ user.Username }</h3>
+			<p class="text-sm text-muted-foreground">{ user.Email }</p>
+		</div>
+		<button class="deleteBtn inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-destructive text-destructive-foreground hover:bg-destructive/90 h-9 px-4 py-2" hx-delete={ fmt.Sprintf("/users/%d", user.Id) } hx-target="closest .singlePollDiv" hx-swap="outerHTML">
 			Eliminar
 		</button>
 	</div>

@@ -1,12 +1,15 @@
 package components
 
 templ Toast(message string, isError bool) {
-	<div id="messagesContainer" class="messagesContainer" aria-live="polite" aria-atomic="true" hx-swap-oob="beforeend">
+	<div id="messagesContainer" hx-swap-oob="beforeend">
 		<div
-			class={ "message", templ.KV("error", isError), templ.KV("success", !isError), "visible" }
-			hx-on:htmx:load="setTimeout(() => { this.classList.remove('visible'); setTimeout(() => this.remove(), 300) }, 3000)"
+			class={ "pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-md border p-4 shadow-lg transition-all animate-in slide-in-from-right-full duration-300",
+            templ.KV("bg-destructive text-destructive-foreground border-destructive", isError),
+            templ.KV("bg-background text-foreground border-border", !isError) }
+			style="min-width: 300px;"
+			hx-on:htmx:load="setTimeout(() => { this.classList.add('opacity-0', 'translate-x-full'); setTimeout(() => this.remove(), 300) }, 3000)"
 		>
-			{ message }
+			<p class="text-sm font-medium">{ message }</p>
 		</div>
 	</div>
 }
