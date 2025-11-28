@@ -1,0 +1,27 @@
+package views
+
+import "webpolls/components"
+
+templ Register() {
+	@components.AuthContainer("Crear Cuenta", "¿Ya tienes una cuenta?", "Inicia sesión aquí", "/login") {
+		<form class="space-y-6" action="#" method="POST">
+			<div class="-space-y-px rounded-md">
+				@components.FormItem() {
+					@components.Label("username", "Usuario")
+					@components.Input("username", "text", "Nombre de usuario", templ.Attributes{"id": "username", "required": "true"})
+				}
+				@components.FormItem() {
+					@components.Label("email-address", "Email")
+					@components.Input("email", "email", "Email", templ.Attributes{"id": "email-address", "required": "true", "autocomplete": "email"})
+				}
+				@components.FormItem() {
+					@components.Label("password", "Contraseña")
+					@components.Input("password", "password", "Contraseña", templ.Attributes{"id": "password", "required": "true", "autocomplete": "new-password"})
+				}
+			</div>
+			<div>
+				@components.Button("Registrarse", templ.Attributes{"type": "submit"}, "primary")
+			</div>
+		</form>
+	}
+}

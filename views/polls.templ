@@ -2,6 +2,7 @@ package views
 
 import "webpolls/services"
 import "fmt"
+import "webpolls/components"
 
 templ Polls(polls []*services.PollResponse) {
 	<div class="container mx-auto px-4 lg:h-[calc(100vh-3.5rem)] lg:overflow-hidden">
@@ -21,32 +22,33 @@ templ Polls(polls []*services.PollResponse) {
 }
 
 templ PollForm() {
-	<div class="rounded-xl border bg-card text-card-foreground shadow-sm">
-		<div class="flex flex-col space-y-1.5 p-4">
+	@components.GlassPanel() {
+		<div class="flex flex-col space-y-1.5 mb-4">
 			<h3 class="font-semibold leading-none tracking-tight">Crear Encuesta</h3>
 			<p class="text-xs text-muted-foreground">Añade una nueva encuesta.</p>
 		</div>
-		<div class="p-4 pt-0">
-			<form hx-post="/polls/create" hx-target="#polls-list" hx-on::after-request="if(event.detail.successful && event.detail.elt === this && !event.detail.xhr.getResponseHeader('HX-Reswap')) this.reset()" hx-swap="outerHTML" class="space-y-3">
-				@FormField("text", "question", "question", "¿Pregunta?", "Pregunta")
-				<input type="number" name="user-id" id="user-id" value="1" hidden/>
-				<div id="optsContainer" class="space-y-2"></div>
-				<button type="button" id="addOptBtn" hx-get="/polls/components/option" hx-target="#optsContainer" hx-swap="beforeend" hx-vals='js:{"count": document.querySelectorAll("input[name=\"options\"]").length}' class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 px-3 py-2 w-full">
-					Agregar opción
-				</button>
-				<button type="submit" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 w-full">
-					Crear Encuesta
-				</button>
-			</form>
-		</div>
-	</div>
+		<form hx-post="/polls/create" hx-target="#polls-list" hx-on::after-request="if(event.detail.successful && event.detail.elt === this && !event.detail.xhr.getResponseHeader('HX-Reswap')) this.reset()" hx-swap="outerHTML" class="space-y-3">
+			@FormField("text", "question", "question", "¿Pregunta?", "Pregunta")
+			<input type="number" name="user-id" id="user-id" value="1" hidden/>
+			<div id="optsContainer" class="space-y-2"></div>
+			@components.Button("Agregar opción", templ.Attributes{
+				"type":      "button",
+				"id":        "addOptBtn",
+				"hx-get":    "/polls/components/option",
+				"hx-target": "#optsContainer",
+				"hx-swap":   "beforeend",
+				"hx-vals":   "js:{\"count\": document.querySelectorAll(\"input[name=\\\"options\\\"]\").length}",
+			}, "secondary")
+			@components.Button("Crear Encuesta", templ.Attributes{"type": "submit"}, "primary")
+		</form>
+	}
 }
 
 templ PollOptionInput() {
 	<div class="flex items-end gap-2 opt animate-in fade-in slide-in-from-top-2 duration-200">
 		<div class="grid w-full gap-1">
 			<label class="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Opción</label>
-			<input type="text" name="options" placeholder="Opción..." required class="flex h-8 w-full rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"/>
+			@components.Input("options", "text", "Opción...", templ.Attributes{"required": "true", "class": "h-8 py-1"})
 		</div>
 		<button type="button" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-destructive hover:text-destructive-foreground h-8 w-8 shrink-0" onclick="this.closest('.opt').remove()">
 			<i class="material-icons text-sm">delete</i>
@@ -68,7 +70,7 @@ templ PollList(polls []*services.PollResponse) {
 }
 
 templ PollCard(poll *services.PollResponse) {
-	<div class="singlePollDiv rounded-lg border bg-card text-card-foreground shadow-sm transition-all hover:shadow-md p-4">
+	<div class="singlePollDiv rounded-lg border border-white/5 glass-panel text-card-foreground shadow-sm transition-all hover:shadow-lg hover:border-primary/30 p-5 animate-hover-scale">
 		<div class="flex items-start justify-between gap-4 mb-3">
 			<h3 class="font-semibold leading-tight">{ poll.Title }</h3>
 			<button class="deleteBtn inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-destructive hover:bg-destructive/10 h-8 w-8" hx-delete={ fmt.Sprintf("/polls/%d", poll.ID) } hx-target="closest .singlePollDiv" hx-swap="outerHTML" title="Eliminar encuesta">

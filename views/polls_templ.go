@@ -10,6 +10,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import "webpolls/services"
 import "fmt"
+import "webpolls/components"
 
 func Polls(polls []*services.PollResponse) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -77,15 +78,52 @@ func PollForm() templ.Component {
 			templ_7745c5c3_Var2 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"rounded-xl border bg-card text-card-foreground shadow-sm\"><div class=\"flex flex-col space-y-1.5 p-4\"><h3 class=\"font-semibold leading-none tracking-tight\">Crear Encuesta</h3><p class=\"text-xs text-muted-foreground\">Añade una nueva encuesta.</p></div><div class=\"p-4 pt-0\"><form hx-post=\"/polls/create\" hx-target=\"#polls-list\" hx-on::after-request=\"if(event.detail.successful && event.detail.elt === this && !event.detail.xhr.getResponseHeader('HX-Reswap')) this.reset()\" hx-swap=\"outerHTML\" class=\"space-y-3\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = FormField("text", "question", "question", "¿Pregunta?", "Pregunta").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<input type=\"number\" name=\"user-id\" id=\"user-id\" value=\"1\" hidden><div id=\"optsContainer\" class=\"space-y-2\"></div><button type=\"button\" id=\"addOptBtn\" hx-get=\"/polls/components/option\" hx-target=\"#optsContainer\" hx-swap=\"beforeend\" hx-vals='js:{\"count\": document.querySelectorAll(\"input[name=\\\"options\\\"]\").length}' class=\"inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 px-3 py-2 w-full\">Agregar opción</button> <button type=\"submit\" class=\"inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 w-full\">Crear Encuesta</button></form></div></div>")
+		templ_7745c5c3_Var3 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+			if !templ_7745c5c3_IsBuffer {
+				defer func() {
+					templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err == nil {
+						templ_7745c5c3_Err = templ_7745c5c3_BufErr
+					}
+				}()
+			}
+			ctx = templ.InitializeContext(ctx)
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"flex flex-col space-y-1.5 mb-4\"><h3 class=\"font-semibold leading-none tracking-tight\">Crear Encuesta</h3><p class=\"text-xs text-muted-foreground\">Añade una nueva encuesta.</p></div><form hx-post=\"/polls/create\" hx-target=\"#polls-list\" hx-on::after-request=\"if(event.detail.successful && event.detail.elt === this && !event.detail.xhr.getResponseHeader('HX-Reswap')) this.reset()\" hx-swap=\"outerHTML\" class=\"space-y-3\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = FormField("text", "question", "question", "¿Pregunta?", "Pregunta").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<input type=\"number\" name=\"user-id\" id=\"user-id\" value=\"1\" hidden><div id=\"optsContainer\" class=\"space-y-2\"></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = components.Button("Agregar opción", templ.Attributes{
+				"type":      "button",
+				"id":        "addOptBtn",
+				"hx-get":    "/polls/components/option",
+				"hx-target": "#optsContainer",
+				"hx-swap":   "beforeend",
+				"hx-vals":   "js:{\"count\": document.querySelectorAll(\"input[name=\\\"options\\\"]\").length}",
+			}, "secondary").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = components.Button("Crear Encuesta", templ.Attributes{"type": "submit"}, "primary").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</form>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			return nil
+		})
+		templ_7745c5c3_Err = components.GlassPanel().Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -109,12 +147,20 @@ func PollOptionInput() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var3 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var3 == nil {
-			templ_7745c5c3_Var3 = templ.NopComponent
+		templ_7745c5c3_Var4 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var4 == nil {
+			templ_7745c5c3_Var4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<div class=\"flex items-end gap-2 opt animate-in fade-in slide-in-from-top-2 duration-200\"><div class=\"grid w-full gap-1\"><label class=\"text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70\">Opción</label> <input type=\"text\" name=\"options\" placeholder=\"Opción...\" required class=\"flex h-8 w-full rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50\"></div><button type=\"button\" class=\"inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-destructive hover:text-destructive-foreground h-8 w-8 shrink-0\" onclick=\"this.closest('.opt').remove()\"><i class=\"material-icons text-sm\">delete</i></button></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div class=\"flex items-end gap-2 opt animate-in fade-in slide-in-from-top-2 duration-200\"><div class=\"grid w-full gap-1\"><label class=\"text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70\">Opción</label>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = components.Input("options", "text", "Opción...", templ.Attributes{"required": "true", "class": "h-8 py-1"}).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div><button type=\"button\" class=\"inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-destructive hover:text-destructive-foreground h-8 w-8 shrink-0\" onclick=\"this.closest('.opt').remove()\"><i class=\"material-icons text-sm\">delete</i></button></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -138,17 +184,17 @@ func PollList(polls []*services.PollResponse) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var4 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var4 == nil {
-			templ_7745c5c3_Var4 = templ.NopComponent
+		templ_7745c5c3_Var5 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var5 == nil {
+			templ_7745c5c3_Var5 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div id=\"polls-list\" class=\"space-y-3\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<div id=\"polls-list\" class=\"space-y-3\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if len(polls) == 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div class=\"rounded-lg border border-dashed p-8 text-center text-muted-foreground\">No hay encuestas creadas aún.</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<div class=\"rounded-lg border border-dashed p-8 text-center text-muted-foreground\">No hay encuestas creadas aún.</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -159,7 +205,7 @@ func PollList(polls []*services.PollResponse) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -183,61 +229,61 @@ func PollCard(poll *services.PollResponse) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var5 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var5 == nil {
-			templ_7745c5c3_Var5 = templ.NopComponent
+		templ_7745c5c3_Var6 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var6 == nil {
+			templ_7745c5c3_Var6 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<div class=\"singlePollDiv rounded-lg border bg-card text-card-foreground shadow-sm transition-all hover:shadow-md p-4\"><div class=\"flex items-start justify-between gap-4 mb-3\"><h3 class=\"font-semibold leading-tight\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var6 string
-		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(poll.Title)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/polls.templ`, Line: 73, Col: 55}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</h3><button class=\"deleteBtn inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-destructive hover:bg-destructive/10 h-8 w-8\" hx-delete=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<div class=\"singlePollDiv rounded-lg border border-white/5 glass-panel text-card-foreground shadow-sm transition-all hover:shadow-lg hover:border-primary/30 p-5 animate-hover-scale\"><div class=\"flex items-start justify-between gap-4 mb-3\"><h3 class=\"font-semibold leading-tight\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var7 string
-		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/polls/%d", poll.ID))
+		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(poll.Title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/polls.templ`, Line: 74, Col: 402}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/polls.templ`, Line: 75, Col: 55}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" hx-target=\"closest .singlePollDiv\" hx-swap=\"outerHTML\" title=\"Eliminar encuesta\"><i class=\"material-icons text-lg\">delete</i></button></div><ul class=\"space-y-1.5\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</h3><button class=\"deleteBtn inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-destructive hover:bg-destructive/10 h-8 w-8\" hx-delete=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var8 string
+		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/polls/%d", poll.ID))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/polls.templ`, Line: 76, Col: 402}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "\" hx-target=\"closest .singlePollDiv\" hx-swap=\"outerHTML\" title=\"Eliminar encuesta\"><i class=\"material-icons text-lg\">delete</i></button></div><ul class=\"space-y-1.5\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		for _, option := range poll.Options {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<li class=\"flex items-center gap-2 text-sm text-muted-foreground\"><span class=\"h-1.5 w-1.5 rounded-full bg-primary/50 shrink-0\"></span> <span>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<li class=\"flex items-center gap-2 text-sm text-muted-foreground\"><span class=\"h-1.5 w-1.5 rounded-full bg-primary/50 shrink-0\"></span> <span>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var8 string
-			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(option.Content)
+			var templ_7745c5c3_Var9 string
+			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(option.Content)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/polls.templ`, Line: 82, Col: 27}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/polls.templ`, Line: 84, Col: 27}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</span></li>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</span></li>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</ul></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</ul></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

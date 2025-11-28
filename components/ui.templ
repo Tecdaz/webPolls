@@ -1,0 +1,74 @@
+package components
+
+templ GlassPanel() {
+	<div class="rounded-xl border border-white/10 glass-panel text-card-foreground shadow-lg backdrop-blur-md p-6 animate-fade-in-up">
+		{ children... }
+	</div>
+}
+
+templ PageTitle(title string) {
+	<h1 class="text-3xl font-bold tracking-tight mb-8 text-foreground">{ title }</h1>
+}
+
+templ Button(text string, attrs templ.Attributes, variant string) {
+	<button
+		{ attrs... }
+		class={ "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 w-full shadow-md animate-hover-scale " + getButtonVariantClass(variant) }
+	>
+		{ text }
+	</button>
+}
+
+func getButtonVariantClass(variant string) string {
+	switch variant {
+	case "secondary":
+		return "border border-input bg-background/50 hover:bg-accent hover:text-accent-foreground"
+	case "destructive":
+		return "bg-destructive text-destructive-foreground hover:bg-destructive/90"
+	case "outline":
+		return "border border-primary/30 hover:bg-primary/10 text-white"
+	default: // primary
+		return "bg-primary text-primary-foreground hover:bg-primary/90"
+	}
+}
+
+templ Input(name string, typee string, placeholder string, attrs templ.Attributes) {
+	<input
+		type={ typee }
+		name={ name }
+		placeholder={ placeholder }
+		{ attrs... }
+		class="flex h-10 w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all focus:bg-background"
+	/>
+}
+
+templ Label(forId string, text string) {
+	<label for={ forId } class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2 block">
+		{ text }
+	</label>
+}
+
+templ FormItem() {
+	<div class="grid w-full items-center gap-1.5 mb-4">
+		{ children... }
+	</div>
+}
+
+templ AuthContainer(title string, linkLabel string, linkText string, linkHref string) {
+	<div class="w-full max-w-md space-y-8">
+		@GlassPanel() {
+			<div class="text-center mb-8">
+				<h2 class="mt-6 text-3xl font-bold tracking-tight text-foreground">
+					{ title }
+				</h2>
+				<p class="mt-2 text-sm text-primary-foreground/80">
+					{ linkLabel }
+					<a href={ templ.SafeURL(linkHref) } class="font-medium text-primary hover:text-primary/80 transition-colors hover:underline">
+						{ linkText }
+					</a>
+				</p>
+			</div>
+			{ children... }
+		}
+	</div>
+}

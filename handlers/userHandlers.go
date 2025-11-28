@@ -158,3 +158,19 @@ func (h *userHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (h *userHandler) GetLogin(w http.ResponseWriter, r *http.Request) {
+	err := views.AuthLayout(views.Login(), "Iniciar Sesión - Webpolls").Render(r.Context(), w)
+	if err != nil {
+		RespondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+}
+
+func (h *userHandler) GetRegister(w http.ResponseWriter, r *http.Request) {
+	err := views.AuthLayout(views.Register(), "Registrarse - Webpolls").Render(r.Context(), w)
+	if err != nil {
+		RespondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+}

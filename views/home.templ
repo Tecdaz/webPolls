@@ -1,13 +1,32 @@
 package views
 
 templ Home() {
-	<div class="container mx-auto py-20 px-4 text-center">
-		<h1 class="text-4xl font-extrabold tracking-tight lg:text-5xl mb-6 scroll-m-20">Bienvenido a WebPolls</h1>
-		<p class="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-			En esta pagina podras administrar tus encuestas y ver que contesta la gente de manera anonima, con tu usuario podras administrar tus encuestas y ver sus resultados.
-		</p>
-		<p class="mt-4 text-muted-foreground">
-			En este punto ya se esta utilizando HTMX para hacer las peticiones y mostrar los resultados
-		</p>
+	<div class="relative overflow-hidden">
+		<div class="container mx-auto px-4 py-24 lg:py-32 relative z-10">
+			<div class="max-w-3xl mx-auto text-center animate-fade-in-up">
+				<h1 class="text-5xl font-extrabold tracking-tight lg:text-7xl mb-8 bg-clip-text text-transparent bg-gradient-to-r from-white to-primary/80 drop-shadow-sm">
+					Tu opinión cuenta,
+					<br/>
+					hazla valer.
+				</h1>
+				<p class="text-xl text-primary-foreground/80 max-w-2xl mx-auto leading-relaxed mb-10 font-light">
+					Crea encuestas dinámicas, comparte con tu audiencia y visualiza los resultados en tiempo real. La plataforma moderna para decisiones colectivas.
+				</p>
+				<div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+					<a href="/polls" class="inline-flex items-center justify-center rounded-full text-base font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-8 shadow-lg hover:shadow-xl hover:-translate-y-1 animate-hover-scale">
+						Comenzar ahora
+						<i class="material-icons ml-2 text-lg">arrow_forward</i>
+					</a>
+					<a href="/users" class="inline-flex items-center justify-center rounded-full text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background border border-primary/30 hover:bg-primary/10 text-white h-12 px-8 animate-hover-scale">
+						Explorar usuarios
+					</a>
+				</div>
+			</div>
+		</div>
+		<!-- Decorative background elements -->
+		<div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full overflow-hidden -z-10 pointer-events-none">
+			<div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-primary/10 blur-[100px]"></div>
+			<div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-accent/10 blur-[100px]"></div>
+		</div>
 	</div>
 }

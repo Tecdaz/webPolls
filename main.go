@@ -40,6 +40,10 @@ func main() {
 	mux.HandleFunc("PUT /users/{id}", userHandler.UpdateUser)
 	mux.HandleFunc("GET /users", userHandler.GetUsers)
 
+	// Auth routes
+	mux.HandleFunc("GET /login", userHandler.GetLogin)
+	mux.HandleFunc("GET /register", userHandler.GetRegister)
+
 	// Rutas de encuestas
 	mux.HandleFunc("POST /polls/create", pollHandler.CreatePoll)
 	mux.HandleFunc("GET /polls/{id}", pollHandler.GetPoll)

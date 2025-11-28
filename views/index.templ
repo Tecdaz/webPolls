@@ -5,34 +5,26 @@ import "webpolls/components"
 templ Layout(content templ.Component, title string) {
 	<!DOCTYPE html>
 	<html lang="es">
-		<head>
-			<meta charset="UTF-8"/>
-			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-			<title>{ title }</title>
-			<link rel="stylesheet" href="/static/styles.css"/>
-			<link
-				href="https://fonts.googleapis.com/icon?family=Material+Icons"
-				rel="stylesheet"
-			/>
-			<meta name="description" content="Pagina para crear polls y votar"/>
-			<script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.7/dist/htmx.min.js" integrity="sha384-ZBXiYtYQ6hJ2Y0ZNoYuI+Nq5MqWBr+chMrS/RkXpNzQCApHEhOt2aY8EJgqwHLkJ" crossorigin="anonymous"></script>
-			// Previene el comportamiento por defecto de htmx al recibir un error asi manejamos correctamente la semantica
-			// de la respuesta del servidor con los codigos de error correspondientes
-			<script>
-				document.addEventListener("htmx:beforeSwap", function(evt) {
-					if (evt.detail.xhr.status >= 400 && evt.detail.xhr.status < 600) {
-						evt.detail.shouldSwap = true;
-						evt.detail.isError = false;
-					}
-				});
-			</script>
-		</head>
+		@components.Head(title)
 		<body hx-boost="true" hx-target="#main-content" class="min-h-screen bg-background text-foreground font-sans antialiased">
 			@components.Navigator()
-			<main id="main-content" class="flex-1">
+			<main id="main-content" class="flex-1 animate-fade-in-up">
 				@content
 			</main>
-			<div id="messagesContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2" aria-live="polite" aria-atomic="true"></div>
+			@components.ToastContainer()
+		</body>
+	</html>
+}
+
+templ AuthLayout(content templ.Component, title string) {
+	<!DOCTYPE html>
+	<html lang="es">
+		@components.Head(title)
+		<body hx-boost="true" hx-target="#main-content" class="min-h-screen bg-background text-foreground font-sans antialiased flex flex-col">
+			<main id="main-content" class="flex-1 flex items-center justify-center p-4 animate-fade-in-up">
+				@content
+			</main>
+			@components.ToastContainer()
 		</body>
 	</html>
 }
