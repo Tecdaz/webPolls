@@ -2,20 +2,22 @@ package services
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"log"
 	db "webpolls/db/sqlc"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // PollService encapsula la lógica de negocio para las encuestas.
 type PollService struct {
 	Queries *db.Queries // <-- Exportado (con mayúscula)
-	DB      *sql.DB
+	DB      *pgxpool.Pool
 }
 
 // NewPollService crea una nueva instancia de PollService.
-func NewPollService(queries *db.Queries, db *sql.DB) *PollService {
+func NewPollService(queries *db.Queries, db *pgxpool.Pool) *PollService {
 	return &PollService{Queries: queries, DB: db} // <-- actualizado
 }
 
@@ -57,11 +59,11 @@ func (s *PollService) CreatePoll(ctx context.Context, params PollRequest) (*Poll
 		return nil, errors.New("deben ser máximo 4 opciones")
 	}
 
-	tx, err := s.DB.BeginTx(ctx, nil)
+	tx, err := s.DB.Begin(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer tx.Rollback(ctx)
 
 	qtx := s.Queries.WithTx(tx)
 
@@ -95,7 +97,7 @@ func (s *PollService) CreatePoll(ctx context.Context, params PollRequest) (*Poll
 		return nil, errors.New("deben ser al menos 2 opciones")
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		return nil, err
 	}
 
@@ -146,7 +148,7 @@ func (s *PollService) GetPollByID(ctx context.Context, id int32, userID *int32) 
 		})
 		if err == nil {
 			userVotedOptionID = &votedOption
-		} else if err != sql.ErrNoRows {
+		} else if err != pgx.ErrNoRows {
 			log.Printf("Error checking user vote: %v", err)
 		}
 	}
@@ -180,47 +182,11 @@ func (s *PollService) GetPollByID(ctx context.Context, id int32, userID *int32) 
 }
 
 func (s *PollService) Vote(ctx context.Context, pollID int32, optionID int32, userID int32) error {
-	tx, err := s.DB.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
-	qtx := s.Queries.WithTx(tx)
-
-	// Remove previous vote if exists (to ensure 1 vote per user per poll)
-	// We could also use ON CONFLICT UPDATE, but the requirement says "actualizar ese voto"
-	// and our schema has unique constraint on (poll_id, option_id, user_id) which is for a specific option.
-	// But we want unique per poll.
-	// Wait, the schema says: CONSTRAINT unique_result UNIQUE (poll_id, option_id, user_id)
-	// This means a user can vote for multiple options in the same poll?
-	// Let's check schema.sql
-	// CONSTRAINT unique_result UNIQUE (poll_id, option_id, user_id)
-	// This allows (poll=1, option=1, user=1) AND (poll=1, option=2, user=1).
-	// So the DB allows multiple votes per poll (one per option).
-	// The requirement says: "solo se guarda un voto por usuario".
-	// So we must enforce this in app logic or DB.
-	// My plan was: DeleteUserVote (delete from results where poll_id=? and user_id=?) then Insert.
-	// This ensures only one row exists for this user in this poll.
-
-	err = qtx.DeleteUserVote(ctx, db.DeleteUserVoteParams{
-		PollID: pollID,
-		UserID: userID,
-	})
-	if err != nil {
-		return err
-	}
-
-	err = qtx.Vote(ctx, db.VoteParams{
+	return s.Queries.VoteOneStep(ctx, db.VoteOneStepParams{
 		PollID:   pollID,
 		OptionID: optionID,
 		UserID:   userID,
 	})
-	if err != nil {
-		return err
-	}
-
-	return tx.Commit()
 }
 
 func (s *PollService) GetPolls(ctx context.Context, userID int32) ([]*PollResponse, error) {

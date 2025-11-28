@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"database/sql"
 	"encoding/json"
 	"net/http"
 
@@ -9,6 +8,8 @@ import (
 	"webpolls/services"
 	"webpolls/utils"
 	"webpolls/views"
+
+	"github.com/jackc/pgx/v5"
 )
 
 // userHandler ahora depende de UserService
@@ -83,7 +84,7 @@ func (h *userHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.service.GetUserByID(r.Context(), userID)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if err == pgx.ErrNoRows {
 			RespondWithError(w, http.StatusNotFound, "Usuario no encontrado")
 		} else {
 			RespondWithError(w, http.StatusInternalServerError, err.Error())

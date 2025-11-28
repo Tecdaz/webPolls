@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -11,6 +10,8 @@ import (
 	"webpolls/services"
 	"webpolls/utils"
 	"webpolls/views"
+
+	"github.com/jackc/pgx/v5"
 )
 
 // PollHandler ahora depende de PollService
@@ -139,7 +140,7 @@ func (h *PollHandler) GetPollPage(w http.ResponseWriter, r *http.Request) {
 
 	poll, err := h.service.GetPollByID(r.Context(), id, userID)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if err == pgx.ErrNoRows {
 			RespondWithError(w, http.StatusNotFound, "Encuesta no encontrada")
 		} else {
 			log.Println("DB error:", err)

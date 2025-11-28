@@ -2,10 +2,11 @@ package services
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	db "webpolls/db/sqlc"
 
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -61,7 +62,7 @@ func (s *UserService) CreateUser(ctx context.Context, params UserRequest) (*User
 func (s *UserService) Authenticate(ctx context.Context, email, password string) (*UserResponse, error) {
 	user, err := s.Queries.GetUserByEmail(ctx, email)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if err == pgx.ErrNoRows {
 			return nil, errors.New("credenciales inválidas")
 		}
 		return nil, err
@@ -108,14 +109,14 @@ func (s *UserService) UpdateUser(ctx context.Context, id int32, params UpdateUse
 		return nil, errors.New("usuario no encontrado")
 	}
 
-	var username, email, password sql.NullString
+	var username, email, password pgtype.Text
 
 	if params.Username != nil && *params.Username != actualUser.Username {
 		userByUsername, err := s.Queries.GetUserByUsername(ctx, *params.Username)
 		if err == nil && userByUsername.ID != id {
 			return nil, errors.New("el nombre de usuario ya existe")
 		}
-		username = sql.NullString{String: *params.Username, Valid: true}
+		username = pgtype.Text{String: *params.Username, Valid: true}
 	}
 
 	if params.Email != nil && *params.Email != actualUser.Email {
@@ -123,11 +124,11 @@ func (s *UserService) UpdateUser(ctx context.Context, id int32, params UpdateUse
 		if err == nil && userByEmail.ID != id {
 			return nil, errors.New("el email ya existe")
 		}
-		email = sql.NullString{String: *params.Email, Valid: true}
+		email = pgtype.Text{String: *params.Email, Valid: true}
 	}
 
 	if params.Password != nil {
-		password = sql.NullString{String: *params.Password, Valid: true}
+		password = pgtype.Text{String: *params.Password, Valid: true}
 	}
 
 	updatedRow, err := s.Queries.UpdateUser(ctx, db.UpdateUserParams{
