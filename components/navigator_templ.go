@@ -29,7 +29,7 @@ func Navigator(isAuthenticated bool) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<header class=\"sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 animate-fade-in-up\"><div class=\"container flex h-14 max-w-screen-2xl items-center justify-between mx-auto px-4\"><div class=\"mr-4 flex\"><a class=\"mr-6 flex items-center space-x-2\" href=\"/\"><span class=\"font-bold inline-block\">WebPolls</span></a><nav class=\"hidden md:flex items-center space-x-6 text-sm font-medium\"><a href=\"/polls\" class=\"transition-colors hover:text-foreground/80 text-foreground/60 animate-hover-scale\">Polls</a> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<header class=\"sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60\"><div class=\"container flex h-14 max-w-screen-2xl items-center justify-between mx-auto px-4\"><div class=\"mr-4 flex\"><a class=\"mr-6 flex items-center space-x-2\" href=\"/\"><span class=\"font-bold inline-block\">WebPolls</span></a><nav class=\"hidden md:flex items-center space-x-6 text-sm font-medium\"><a href=\"/polls\" class=\"transition-colors hover:text-foreground/80 text-foreground/60 animate-hover-scale\">Polls</a> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -121,30 +121,6 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	RespondWithData(w, http.StatusOK, user, "Usuario actualizado correctamente")
 }
 
-func (h *userHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
-	users, err := h.service.GetUsers(r.Context())
-	if err != nil {
-		RespondWithError(w, http.StatusInternalServerError, "No se pudieron obtener los usuarios")
-		return
-	}
-
-	//WEB
-	if r.Header.Get("HX-Request") == "true" {
-		err = views.Users(users).Render(r.Context(), w)
-		if err != nil {
-			RespondWithError(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-		return
-	}
-
-	err = views.Layout(views.Users(users), "Usuarios - Webpolls", utils.IsAuthenticated(r)).Render(r.Context(), w)
-	if err != nil {
-		RespondWithError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-}
-
 func (h *userHandler) GetLogin(w http.ResponseWriter, r *http.Request) {
 	// Si ya está logueado, redirigir al home
 	if utils.IsAuthenticated(r) {
