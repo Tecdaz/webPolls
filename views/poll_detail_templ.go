@@ -364,7 +364,7 @@ func PollDetailContent(poll *services.PollResponse, isAuthenticated bool) templ.
 			return templ_7745c5c3_Err
 		}
 		if !isAuthenticated {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "<div class=\"pt-4 text-center text-sm text-muted-foreground\"><a href=\"/login\" class=\"text-primary hover:underline font-medium\">Inicia sesión</a> para votar.</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "<div class=\"pt-4 text-center text-sm text-muted-foreground\"><a href=\"/login\" hx-boost=\"false\" class=\"text-primary hover:underline font-medium\">Inicia sesión</a> para votar.</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

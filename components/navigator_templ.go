@@ -54,7 +54,7 @@ func Navigator(isAuthenticated bool) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</div><button class=\"inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:text-accent-foreground h-9 py-2 mr-2 px-0 text-base hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 md:hidden\" type=\"button\" aria-haspopup=\"dialog\" aria-expanded=\"false\" aria-controls=\"mobile-menu\" onclick=\"document.getElementById('mobile-menu').classList.toggle('hidden')\"><i class=\"material-icons\">menu</i> <span class=\"sr-only\">Toggle Menu</span></button></div><div id=\"mobile-menu\" class=\"hidden md:hidden border-t border-border/40 bg-background\"><nav class=\"flex flex-col space-y-4 p-4\"><a href=\"/polls\" class=\"text-sm font-medium transition-colors hover:text-foreground/80 text-foreground/60\">Polls</a> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</div><button class=\"inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:text-accent-foreground h-9 py-2 mr-2 px-0 text-base hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 md:hidden\" type=\"button\" aria-haspopup=\"dialog\" aria-expanded=\"false\" aria-controls=\"mobile-menu\" onclick=\"document.getElementById('mobile-menu').classList.toggle('hidden')\"><i class=\"material-icons\">menu</i> <span class=\"sr-only\">Toggle Menu</span></button></div><div id=\"mobile-menu\" class=\"hidden md:hidden absolute top-14 left-0 w-full border-b border-border/40 bg-background shadow-lg\"><nav class=\"flex flex-col space-y-4 p-4\"><a href=\"/polls\" class=\"text-sm font-medium transition-colors hover:text-foreground/80 text-foreground/60\">Polls</a> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -69,7 +69,7 @@ func Navigator(isAuthenticated bool) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</nav></div></header>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</nav></div><script>\n\t\t\tdocument.addEventListener('click', function(event) {\n\t\t\t\tvar menu = document.getElementById('mobile-menu');\n\t\t\t\tvar btn = document.querySelector('button[aria-controls=\"mobile-menu\"]');\n\t\t\t\tif (menu && !menu.classList.contains('hidden') && !menu.contains(event.target) && btn && !btn.contains(event.target)) {\n\t\t\t\t\tmenu.classList.add('hidden');\n\t\t\t\t}\n\t\t\t});\n\t\t\tdocument.querySelectorAll('#mobile-menu a').forEach(function(link) {\n\t\t\t\tlink.addEventListener('click', function() {\n\t\t\t\t\tdocument.getElementById('mobile-menu').classList.add('hidden');\n\t\t\t\t});\n\t\t\t});\n\t\t</script></header>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

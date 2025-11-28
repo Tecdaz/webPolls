@@ -86,7 +86,7 @@ templ PollDetailContent(poll *services.PollResponse, isAuthenticated bool) {
 		</div>
 		if !isAuthenticated {
 			<div class="pt-4 text-center text-sm text-muted-foreground">
-				<a href="/login" class="text-primary hover:underline font-medium">Inicia sesión</a> para votar.
+				<a href="/login" hx-boost="false" class="text-primary hover:underline font-medium">Inicia sesión</a> para votar.
 			</div>
 		}
 	</div>
