@@ -1,5 +1,5 @@
 # Makefile para proyecto webPolls
-.PHONY: help build run test clean stop logs restart dev install sqlc fmt vet seed seed-users setup-test
+.PHONY: help build run test clean stop logs restart dev install sqlc fmt vet seed seed-users setup-test install-deps css css-watch air templ-watch dev-live db
 
 # Variables
 DOCKER_COMPOSE := docker compose
@@ -27,6 +27,49 @@ help:
 	@echo   status        - Mostrar estado
 	@echo   shell-backend - Shell del backend
 	@echo   shell-db      - Shell de la BD
+	@echo   install-deps  - Instalar dependencias npm
+	@echo   db            - Levantar solo la base de datos
+	@echo   css           - Construir CSS
+	@echo   css-watch     - Observar cambios en CSS
+	@echo   air           - Ejecutar con live reload (Air)
+	@echo   templ-watch   - Generar templates con watch
+	@echo   dev-live      - Desarrollo local con Air, Tailwind y Templ
+
+## install-deps: Instalar dependencias npm
+install-deps:
+	pnpm install
+
+## css: Construir CSS con Tailwind
+css:
+	pnpm build:css
+
+## css-watch: Observar cambios en CSS
+css-watch:
+	pnpm watch:css
+
+## air: Ejecutar con live reload
+air:
+	@if ! command -v air > /dev/null; then \
+		echo "Installing air..."; \
+		go install github.com/air-verse/air@latest; \
+	fi
+	air
+
+## templ-watch: Generar templates con watch
+templ-watch:
+	@if ! command -v templ > /dev/null; then \
+		echo "Installing templ..."; \
+		go install github.com/a-h/templ/cmd/templ@latest; \
+	fi
+	templ generate --watch
+
+## dev-live: Desarrollo local con Air, Tailwind y Templ (paralelo)
+dev-live:
+	$(MAKE) -j3 css-watch air templ-watch
+
+## db: Levantar solo la base de datos
+db:
+	$(DOCKER_COMPOSE) up -d postgres
 
 ## docker-build: Construir imagen Docker
 docker-build:

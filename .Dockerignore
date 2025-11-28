@@ -1,1 +1,6 @@
 *.templ
+node_modules
+pnpm-lock.yaml
+.air.toml
+tmp
+bin

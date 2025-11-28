@@ -1,0 +1,21 @@
+{
+  "name": "webPolls",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build:css": "tailwindcss -i ./static/input.css -o ./static/styles.css --minify",
+    "watch:css": "tailwindcss -i ./static/input.css -o ./static/styles.css --watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.23.0",
+  "dependencies": {
+    "tailwindcss": "^4.1.17"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.1.17"
+  }
+}
