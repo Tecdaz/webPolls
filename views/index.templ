@@ -6,9 +6,9 @@ templ Layout(content templ.Component, title string, isAuthenticated bool) {
 	<!DOCTYPE html>
 	<html lang="es">
 		@components.Head(title)
-		<body hx-boost="true" hx-target="#main-content" class="min-h-screen bg-background text-foreground font-sans antialiased">
+		<body hx-boost="true" hx-target="#main-content" class="min-h-screen bg-background text-foreground font-sans antialiased flex flex-col">
 			@components.Navigator(isAuthenticated)
-			<main id="main-content" class="flex-1 animate-fade-in-up">
+			<main id="main-content" class="flex-1 flex flex-col animate-fade-in-up">
 				@content
 			</main>
 			@components.ToastContainer()
