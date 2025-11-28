@@ -7,7 +7,8 @@ package db
 
 import (
 	"context"
-	"database/sql"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createUser = `-- name: CreateUser :one
@@ -29,7 +30,7 @@ type CreateUserRow struct {
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
-	row := q.db.QueryRowContext(ctx, createUser, arg.Username, arg.Password, arg.Email)
+	row := q.db.QueryRow(ctx, createUser, arg.Username, arg.Password, arg.Email)
 	var i CreateUserRow
 	err := row.Scan(&i.ID, &i.Username, &i.Email)
 	return i, err
@@ -42,7 +43,7 @@ RETURNING username
 `
 
 func (q *Queries) DeleteUser(ctx context.Context, id int32) (string, error) {
-	row := q.db.QueryRowContext(ctx, deleteUser, id)
+	row := q.db.QueryRow(ctx, deleteUser, id)
 	var username string
 	err := row.Scan(&username)
 	return username, err
@@ -60,7 +61,7 @@ type GetAllUsersRow struct {
 }
 
 func (q *Queries) GetAllUsers(ctx context.Context) ([]GetAllUsersRow, error) {
-	rows, err := q.db.QueryContext(ctx, getAllUsers)
+	rows, err := q.db.Query(ctx, getAllUsers)
 	if err != nil {
 		return nil, err
 	}
@@ -72,9 +73,6 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]GetAllUsersRow, error) {
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -96,7 +94,7 @@ type GetUserByEmailRow struct {
 }
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error) {
-	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
+	row := q.db.QueryRow(ctx, getUserByEmail, email)
 	var i GetUserByEmailRow
 	err := row.Scan(
 		&i.ID,
@@ -120,7 +118,7 @@ type GetUserByIDRow struct {
 }
 
 func (q *Queries) GetUserByID(ctx context.Context, id int32) (GetUserByIDRow, error) {
-	row := q.db.QueryRowContext(ctx, getUserByID, id)
+	row := q.db.QueryRow(ctx, getUserByID, id)
 	var i GetUserByIDRow
 	err := row.Scan(&i.ID, &i.Username, &i.Email)
 	return i, err
@@ -139,7 +137,7 @@ type GetUserByUsernameRow struct {
 }
 
 func (q *Queries) GetUserByUsername(ctx context.Context, username string) (GetUserByUsernameRow, error) {
-	row := q.db.QueryRowContext(ctx, getUserByUsername, username)
+	row := q.db.QueryRow(ctx, getUserByUsername, username)
 	var i GetUserByUsernameRow
 	err := row.Scan(&i.ID, &i.Username, &i.Email)
 	return i, err
@@ -156,10 +154,10 @@ RETURNING id, username, email
 `
 
 type UpdateUserParams struct {
-	Username sql.NullString `json:"username"`
-	Email    sql.NullString `json:"email"`
-	Password sql.NullString `json:"password"`
-	ID       int32          `json:"id"`
+	Username pgtype.Text `json:"username"`
+	Email    pgtype.Text `json:"email"`
+	Password pgtype.Text `json:"password"`
+	ID       int32       `json:"id"`
 }
 
 type UpdateUserRow struct {
@@ -169,7 +167,7 @@ type UpdateUserRow struct {
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (UpdateUserRow, error) {
-	row := q.db.QueryRowContext(ctx, updateUser,
+	row := q.db.QueryRow(ctx, updateUser,
 		arg.Username,
 		arg.Email,
 		arg.Password,

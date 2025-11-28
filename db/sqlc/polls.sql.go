@@ -7,7 +7,8 @@ package db
 
 import (
 	"context"
-	"database/sql"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createPoll = `-- name: CreatePoll :one
@@ -22,7 +23,7 @@ type CreatePollParams struct {
 }
 
 func (q *Queries) CreatePoll(ctx context.Context, arg CreatePollParams) (Poll, error) {
-	row := q.db.QueryRowContext(ctx, createPoll, arg.Title, arg.UserID)
+	row := q.db.QueryRow(ctx, createPoll, arg.Title, arg.UserID)
 	var i Poll
 	err := row.Scan(&i.ID, &i.Title, &i.UserID)
 	return i, err
@@ -34,7 +35,7 @@ WHERE id = $1
 `
 
 func (q *Queries) DeletePoll(ctx context.Context, id int32) error {
-	_, err := q.db.ExecContext(ctx, deletePoll, id)
+	_, err := q.db.Exec(ctx, deletePoll, id)
 	return err
 }
 
@@ -53,16 +54,16 @@ ORDER BY p.id ASC
 `
 
 type GetAllPollsRow struct {
-	PollID            int32         `json:"poll_id"`
-	Title             string        `json:"title"`
-	UserID            int32         `json:"user_id"`
-	OptionID          int32         `json:"option_id"`
-	OptionContent     string        `json:"option_content"`
-	UserVotedOptionID sql.NullInt32 `json:"user_voted_option_id"`
+	PollID            int32       `json:"poll_id"`
+	Title             string      `json:"title"`
+	UserID            int32       `json:"user_id"`
+	OptionID          int32       `json:"option_id"`
+	OptionContent     string      `json:"option_content"`
+	UserVotedOptionID pgtype.Int4 `json:"user_voted_option_id"`
 }
 
 func (q *Queries) GetAllPolls(ctx context.Context, userID int32) ([]GetAllPollsRow, error) {
-	rows, err := q.db.QueryContext(ctx, getAllPolls, userID)
+	rows, err := q.db.Query(ctx, getAllPolls, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -81,9 +82,6 @@ func (q *Queries) GetAllPolls(ctx context.Context, userID int32) ([]GetAllPollsR
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -113,7 +111,7 @@ type GetPollByIDRow struct {
 }
 
 func (q *Queries) GetPollByID(ctx context.Context, id int32) ([]GetPollByIDRow, error) {
-	rows, err := q.db.QueryContext(ctx, getPollByID, id)
+	rows, err := q.db.Query(ctx, getPollByID, id)
 	if err != nil {
 		return nil, err
 	}
@@ -131,9 +129,6 @@ func (q *Queries) GetPollByID(ctx context.Context, id int32) ([]GetPollByIDRow, 
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -162,16 +157,16 @@ type GetPollsByUserIDParams struct {
 }
 
 type GetPollsByUserIDRow struct {
-	PollID            int32         `json:"poll_id"`
-	Title             string        `json:"title"`
-	UserID            int32         `json:"user_id"`
-	OptionID          int32         `json:"option_id"`
-	OptionContent     string        `json:"option_content"`
-	UserVotedOptionID sql.NullInt32 `json:"user_voted_option_id"`
+	PollID            int32       `json:"poll_id"`
+	Title             string      `json:"title"`
+	UserID            int32       `json:"user_id"`
+	OptionID          int32       `json:"option_id"`
+	OptionContent     string      `json:"option_content"`
+	UserVotedOptionID pgtype.Int4 `json:"user_voted_option_id"`
 }
 
 func (q *Queries) GetPollsByUserID(ctx context.Context, arg GetPollsByUserIDParams) ([]GetPollsByUserIDRow, error) {
-	rows, err := q.db.QueryContext(ctx, getPollsByUserID, arg.ViewerID, arg.OwnerID)
+	rows, err := q.db.Query(ctx, getPollsByUserID, arg.ViewerID, arg.OwnerID)
 	if err != nil {
 		return nil, err
 	}
@@ -191,9 +186,6 @@ func (q *Queries) GetPollsByUserID(ctx context.Context, arg GetPollsByUserIDPara
 		}
 		items = append(items, i)
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -212,6 +204,6 @@ type UpdatePollParams struct {
 }
 
 func (q *Queries) UpdatePoll(ctx context.Context, arg UpdatePollParams) error {
-	_, err := q.db.ExecContext(ctx, updatePoll, arg.Title, arg.ID)
+	_, err := q.db.Exec(ctx, updatePoll, arg.Title, arg.ID)
 	return err
 }

@@ -21,7 +21,7 @@ type CreateOptionParams struct {
 }
 
 func (q *Queries) CreateOption(ctx context.Context, arg CreateOptionParams) (Option, error) {
-	row := q.db.QueryRowContext(ctx, createOption, arg.Content, arg.PollID)
+	row := q.db.QueryRow(ctx, createOption, arg.Content, arg.PollID)
 	var i Option
 	err := row.Scan(&i.ID, &i.Content, &i.PollID)
 	return i, err
@@ -33,7 +33,7 @@ WHERE id = $1
 `
 
 func (q *Queries) DeleteOption(ctx context.Context, id int32) error {
-	_, err := q.db.ExecContext(ctx, deleteOption, id)
+	_, err := q.db.Exec(ctx, deleteOption, id)
 	return err
 }
 
@@ -44,7 +44,7 @@ ORDER BY id ASC
 `
 
 func (q *Queries) GetAllOptions(ctx context.Context) ([]Option, error) {
-	rows, err := q.db.QueryContext(ctx, getAllOptions)
+	rows, err := q.db.Query(ctx, getAllOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -56,9 +56,6 @@ func (q *Queries) GetAllOptions(ctx context.Context) ([]Option, error) {
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -73,7 +70,7 @@ WHERE id = $1
 `
 
 func (q *Queries) GetOptionByID(ctx context.Context, id int32) (Option, error) {
-	row := q.db.QueryRowContext(ctx, getOptionByID, id)
+	row := q.db.QueryRow(ctx, getOptionByID, id)
 	var i Option
 	err := row.Scan(&i.ID, &i.Content, &i.PollID)
 	return i, err
@@ -87,7 +84,7 @@ ORDER BY id ASC
 `
 
 func (q *Queries) GetOptionByPollID(ctx context.Context, pollID int32) ([]Option, error) {
-	rows, err := q.db.QueryContext(ctx, getOptionByPollID, pollID)
+	rows, err := q.db.Query(ctx, getOptionByPollID, pollID)
 	if err != nil {
 		return nil, err
 	}
@@ -99,9 +96,6 @@ func (q *Queries) GetOptionByPollID(ctx context.Context, pollID int32) ([]Option
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -122,7 +116,7 @@ type UpdateOptionParams struct {
 }
 
 func (q *Queries) UpdateOption(ctx context.Context, arg UpdateOptionParams) (Option, error) {
-	row := q.db.QueryRowContext(ctx, updateOption, arg.Content, arg.ID)
+	row := q.db.QueryRow(ctx, updateOption, arg.Content, arg.ID)
 	var i Option
 	err := row.Scan(&i.ID, &i.Content, &i.PollID)
 	return i, err

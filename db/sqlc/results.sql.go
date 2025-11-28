@@ -20,7 +20,7 @@ type DeleteUserVoteParams struct {
 }
 
 func (q *Queries) DeleteUserVote(ctx context.Context, arg DeleteUserVoteParams) error {
-	_, err := q.db.ExecContext(ctx, deleteUserVote, arg.PollID, arg.UserID)
+	_, err := q.db.Exec(ctx, deleteUserVote, arg.PollID, arg.UserID)
 	return err
 }
 
@@ -39,7 +39,7 @@ type GetPollResultsRow struct {
 }
 
 func (q *Queries) GetPollResults(ctx context.Context, pollID int32) ([]GetPollResultsRow, error) {
-	rows, err := q.db.QueryContext(ctx, getPollResults, pollID)
+	rows, err := q.db.Query(ctx, getPollResults, pollID)
 	if err != nil {
 		return nil, err
 	}
@@ -51,9 +51,6 @@ func (q *Queries) GetPollResults(ctx context.Context, pollID int32) ([]GetPollRe
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -73,7 +70,7 @@ type GetUserVoteParams struct {
 }
 
 func (q *Queries) GetUserVote(ctx context.Context, arg GetUserVoteParams) (int32, error) {
-	row := q.db.QueryRowContext(ctx, getUserVote, arg.PollID, arg.UserID)
+	row := q.db.QueryRow(ctx, getUserVote, arg.PollID, arg.UserID)
 	var option_id int32
 	err := row.Scan(&option_id)
 	return option_id, err
@@ -92,6 +89,26 @@ type VoteParams struct {
 }
 
 func (q *Queries) Vote(ctx context.Context, arg VoteParams) error {
-	_, err := q.db.ExecContext(ctx, vote, arg.PollID, arg.OptionID, arg.UserID)
+	_, err := q.db.Exec(ctx, vote, arg.PollID, arg.OptionID, arg.UserID)
+	return err
+}
+
+const voteOneStep = `-- name: VoteOneStep :exec
+WITH deleted AS (
+    DELETE FROM results 
+    WHERE poll_id = $1 AND user_id = $3
+)
+INSERT INTO results (poll_id, option_id, user_id)
+VALUES ($1, $2, $3)
+`
+
+type VoteOneStepParams struct {
+	PollID   int32 `json:"poll_id"`
+	OptionID int32 `json:"option_id"`
+	UserID   int32 `json:"user_id"`
+}
+
+func (q *Queries) VoteOneStep(ctx context.Context, arg VoteOneStepParams) error {
+	_, err := q.db.Exec(ctx, voteOneStep, arg.PollID, arg.OptionID, arg.UserID)
 	return err
 }
