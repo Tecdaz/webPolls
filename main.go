@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"webpolls/db"
 	"webpolls/handlers"
-	"webpolls/middleware"
 	"webpolls/services"
 
 	sqlc "webpolls/db/sqlc"
@@ -52,14 +51,11 @@ func main() {
 
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 
-	// Aplicar el middleware a todo el mux
-	loggedMux := middleware.LoggingMiddleware(mux)
-
 	// inicio servidor
 	port := ":8080"
 	log.Println("Servidor corriendo en", port)
 	// Usar el mux envuelto en el middleware
-	if err := http.ListenAndServe(port, loggedMux); err != nil {
+	if err := http.ListenAndServe(port, mux); err != nil {
 		log.Fatal("Error al iniciar el servidor:", err)
 	}
 }
