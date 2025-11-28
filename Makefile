@@ -122,3 +122,7 @@ shell-backend:
 ## shell-db: Conectar a PostgreSQL
 shell-db:
 	docker exec -it $(PROJECT_NAME)-postgres psql -U postgres -d polls
+
+docker-push:
+	docker build -t tecdaz/webpolls:latest .
+	docker push tecdaz/webpolls:latest
