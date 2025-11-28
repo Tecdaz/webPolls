@@ -14,12 +14,17 @@ func InitSessionStore() {
 	if key == "" {
 		key = "supersecretkey" // Fallback for development
 	}
+	secure := os.Getenv("SECURE")
+	if secure == "" {
+		secure = "false"
+	}
+
 	Store = sessions.NewCookieStore([]byte(key))
 	Store.Options = &sessions.Options{
 		Path:     "/",
 		MaxAge:   86400 * 7, // 7 days
 		HttpOnly: true,
-		Secure:   false, // Set to true in production with HTTPS
+		Secure:   secure == "true", // Set to true in production with HTTPS
 	}
 }
 
