@@ -31,9 +31,10 @@ help:
 	@echo   db            - Levantar solo la base de datos
 	@echo   css           - Construir CSS
 	@echo   css-watch     - Observar cambios en CSS
-	@echo   air           - Ejecutar con live reload (Air)
+	@echo   air           - Ejecutar con live reload Air
 	@echo   templ-watch   - Generar templates con watch
 	@echo   dev-live      - Desarrollo local con Air, Tailwind y Templ
+	@echo   docker-push   - Push de la imagen Docker
 
 ## install-deps: Instalar dependencias npm
 install-deps:
